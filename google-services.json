@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "691327481256",
+    "project_id": "silpi-9406f",
+    "storage_bucket": "silpi-9406f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:691327481256:android:7cec564424f6357fe5999d",
+        "android_client_info": {
+          "package_name": "com.silpi.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGtiAHlWtQPcTaAOd6BpER8-1V1gw5OxI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
