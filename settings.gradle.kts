@@ -13,6 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "teamProject"
+rootProject.name = "SilpiApp"
 include(":app")
- 
