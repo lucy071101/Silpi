@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="silphy_bg_light">#F9F6FA</color>
+    <color name="silphy_primary">#6750A4</color>
+    <color name="silphy_text_main">#313131</color>
+    <color name="silphy_text_hint">#808080</color>
+    <color name="silphy_divider">#CCCCCC</color>
+</resources>
