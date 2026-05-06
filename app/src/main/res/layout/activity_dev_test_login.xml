@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="테스트 사용자 선택"
+        android:textColor="#111111"
+        android:textSize="26sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textViewCurrentUser"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="현재 사용자"
+        android:textColor="#555555"
+        android:textSize="15sp" />
+
+    <Button
+        android:id="@+id/buttonLoginUser999"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="28dp"
+        android:text="주댕이로 로그인" />
+
+    <Button
+        android:id="@+id/buttonLoginUser123"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="12dp"
+        android:text="테스트123으로 로그인" />
+
+    <Button
+        android:id="@+id/buttonLoginUser777"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="12dp"
+        android:text="테스트777로 로그인" />
+
+    <Button
+        android:id="@+id/buttonContinueChat"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="24dp"
+        android:text="현재 사용자로 계속하기" />
+
+</LinearLayout>
