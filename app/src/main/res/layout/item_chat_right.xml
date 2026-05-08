@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="end"
+    android:padding="4dp">
+
+    <TextView
+        android:id="@+id/textViewMessageRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_chat_right"
+        android:maxWidth="250dp"
+        android:padding="12dp"
+        android:text="내 메시지"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp" />
+
+    <ImageView
+        android:id="@+id/imageViewMessageRight"
+        android:layout_width="220dp"
+        android:layout_height="220dp"
+        android:background="@drawable/bg_chat_right"
+        android:contentDescription="이미지 메시지"
+        android:padding="4dp"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/textViewTimeRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="오후 2:16"
+        android:textColor="#888888"
+        android:textSize="12sp" />
+</LinearLayout>
