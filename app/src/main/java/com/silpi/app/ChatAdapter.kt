@@ -1,5 +1,7 @@
 package com.silpi.app
 
+import android.graphics.BitmapFactory
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,7 +9,6 @@ import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -56,8 +57,7 @@ class ChatAdapter(
             LeftViewHolder(view)
         }
     }
-    /*같은 사람 연속 메시지면 이름은 첫 메시지에만
-    같은 사람 연속 메시지면 시간은 마지막 메시지에만*/
+
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val currentPosition = holder.bindingAdapterPosition
         if (currentPosition == RecyclerView.NO_POSITION) return
@@ -134,13 +134,13 @@ class ChatAdapter(
             imageView: ImageView,
             chatMessage: ChatMessage
     ) {
-        if (chatMessage.messageType == "image" && chatMessage.imageUrl.isNotBlank()) {
+        if (chatMessage.messageType == "image" && chatMessage.imageData.isNotBlank()) {
             textView.visibility = View.GONE
             imageView.visibility = View.VISIBLE
-            Glide.with(imageView)
-                    .load(chatMessage.imageUrl)
-                    .centerCrop()
-                    .into(imageView)
+
+            val imageBytes = Base64.decode(chatMessage.imageData, Base64.DEFAULT)
+            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+            imageView.setImageBitmap(bitmap)
         } else {
             imageView.visibility = View.GONE
             textView.visibility = View.VISIBLE
@@ -148,12 +148,11 @@ class ChatAdapter(
         }
     }
 
-    //시간 데이터
     private fun formatTimestamp(timestamp: Long): String {
         val formatter = SimpleDateFormat("a h:mm", Locale.KOREAN)
         return formatter.format(Date(timestamp))
     }
-    //연속 메시지 위아래 마진 간격 조절
+
     private fun setMessageTopMargin(itemView: View, isSameSenderAsPrevious: Boolean) {
         val layoutParams = itemView.layoutParams as RecyclerView.LayoutParams
 

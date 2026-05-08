@@ -1,7 +1,10 @@
 package com.silpi.app
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import android.widget.EditText
 import android.widget.ImageButton
@@ -12,8 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.storage.FirebaseStorage
-import java.util.UUID
+import java.io.ByteArrayOutputStream
 
 class ChatActivity : AppCompatActivity() {
 
@@ -27,7 +29,6 @@ class ChatActivity : AppCompatActivity() {
     private val messageList = mutableListOf<ChatMessage>()
 
     private lateinit var db: FirebaseFirestore
-    private lateinit var storage: FirebaseStorage
     private var messageListener: ListenerRegistration? = null
 
     private lateinit var chatRoomId: String
@@ -38,7 +39,7 @@ class ChatActivity : AppCompatActivity() {
             ActivityResultContracts.GetContent()
     ) { imageUri ->
         if (imageUri != null) {
-            uploadAndSendImage(imageUri)
+            prepareAndSendImage(imageUri)
         }
     }
 
@@ -47,14 +48,13 @@ class ChatActivity : AppCompatActivity() {
         setContentView(R.layout.activity_chat)
 
         db = FirebaseFirestore.getInstance()
-        storage = FirebaseStorage.getInstance()
         myUserId = CurrentUserProvider.userId(this)
         myUserName = CurrentUserProvider.userName(this)
 
         chatRoomId = intent.getStringExtra("chatRoomId") ?: ""
 
         if (chatRoomId.isEmpty()) {
-            Toast.makeText(this, "채팅방 ID가 없습니다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Chat room ID is missing.", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
@@ -115,41 +115,75 @@ class ChatActivity : AppCompatActivity() {
         sendChatMessage(chatMessage, message)
     }
 
-    private fun uploadAndSendImage(imageUri: Uri) {
-        val imageRef = storage.reference
-                .child("chat_images")
-                .child(chatRoomId)
-                .child("${UUID.randomUUID()}.jpg")
+    private fun prepareAndSendImage(imageUri: Uri) {
+        try {
+            val imageData = encodeImageForTest(imageUri)
 
-        Toast.makeText(this, "이미지 업로드 중...", Toast.LENGTH_SHORT).show()
+            if (imageData.isBlank()) {
+                Toast.makeText(this, "Image is too large.", Toast.LENGTH_SHORT).show()
+                return
+            }
 
-        imageRef.putFile(imageUri)
-                .continueWithTask { task ->
-                    if (!task.isSuccessful) {
-                        task.exception?.let { throw it }
-                    }
-                    imageRef.downloadUrl
-                }
-                .addOnSuccessListener { downloadUri ->
-                    sendImageMessage(downloadUri.toString())
-                }
-                .addOnFailureListener { e ->
-                    Log.e("ChatActivity", "이미지 업로드 실패", e)
-                    Toast.makeText(this, "이미지 전송 실패", Toast.LENGTH_SHORT).show()
-                }
+            sendImageMessage(imageData)
+        } catch (e: Exception) {
+            Log.e("ChatActivity", "Image send failed", e)
+            Toast.makeText(this, "Image send failed", Toast.LENGTH_SHORT).show()
+        }
     }
 
-    private fun sendImageMessage(imageUrl: String) {
+    private fun encodeImageForTest(imageUri: Uri): String {
+        val inputStream = contentResolver.openInputStream(imageUri) ?: return ""
+        val bitmap = inputStream.use { BitmapFactory.decodeStream(it) } ?: return ""
+        val resizedBitmap = resizeBitmap(bitmap, 700)
+        val outputStream = ByteArrayOutputStream()
+        var quality = 70
+        var imageBytes: ByteArray
+
+        do {
+            outputStream.reset()
+            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+            imageBytes = outputStream.toByteArray()
+            quality -= 10
+        } while (imageBytes.size > 700_000 && quality >= 30)
+
+        if (imageBytes.size > 700_000) {
+            return ""
+        }
+
+        return Base64.encodeToString(imageBytes, Base64.DEFAULT)
+    }
+
+    private fun resizeBitmap(bitmap: Bitmap, maxSize: Int): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+
+        if (width <= maxSize && height <= maxSize) {
+            return bitmap
+        }
+
+        val ratio = if (width > height) {
+            maxSize.toFloat() / width.toFloat()
+        } else {
+            maxSize.toFloat() / height.toFloat()
+        }
+
+        val resizedWidth = (width * ratio).toInt()
+        val resizedHeight = (height * ratio).toInt()
+
+        return Bitmap.createScaledBitmap(bitmap, resizedWidth, resizedHeight, true)
+    }
+
+    private fun sendImageMessage(imageData: String) {
         val chatMessage = ChatMessage(
                 message = "",
                 senderId = myUserId,
                 senderName = myUserName,
-                imageUrl = imageUrl,
+                imageData = imageData,
                 messageType = "image",
                 timestamp = System.currentTimeMillis()
         )
 
-        sendChatMessage(chatMessage, "사진")
+        sendChatMessage(chatMessage, "Photo")
     }
 
     private fun sendChatMessage(chatMessage: ChatMessage, lastMessage: String) {
@@ -159,7 +193,7 @@ class ChatActivity : AppCompatActivity() {
         db.runTransaction { transaction ->
             val document = transaction.get(roomRef)
             val chatRoom = document.toObject(ChatRoom::class.java)
-                    ?: throw IllegalStateException("채팅방 정보 불러오기 실패")
+                    ?: throw IllegalStateException("Failed to load chat room.")
 
             val updatedUnreadCount = chatRoom.unreadCount.toMutableMap()
 
@@ -181,11 +215,11 @@ class ChatActivity : AppCompatActivity() {
             )
         }
                 .addOnSuccessListener {
-                    Log.d("ChatActivity", "메시지 전송 성공")
+                    Log.d("ChatActivity", "Message sent")
                 }
                 .addOnFailureListener { e ->
-                    Log.e("ChatActivity", "메시지 전송 실패", e)
-                    Toast.makeText(this, "메시지 전송 실패", Toast.LENGTH_SHORT).show()
+                    Log.e("ChatActivity", "Message send failed", e)
+                    Toast.makeText(this, "Message send failed", Toast.LENGTH_SHORT).show()
                 }
     }
 
@@ -203,11 +237,11 @@ class ChatActivity : AppCompatActivity() {
 
                     roomRef.update("unreadCount", updatedUnreadCount)
                             .addOnFailureListener { e ->
-                                Log.e("ChatActivity", "읽음 처리 실패", e)
+                                Log.e("ChatActivity", "Read update failed", e)
                             }
                 }
                 .addOnFailureListener { e ->
-                    Log.e("ChatActivity", "채팅방 정보 조회 실패", e)
+                    Log.e("ChatActivity", "Chat room fetch failed", e)
                 }
     }
 
@@ -219,7 +253,7 @@ class ChatActivity : AppCompatActivity() {
                 .addSnapshotListener { snapshot, error ->
 
                     if (error != null) {
-                        Log.e("ChatActivity", "메시지 불러오기 실패", error)
+                        Log.e("ChatActivity", "Message fetch failed", error)
                         return@addSnapshotListener
                     }
 
