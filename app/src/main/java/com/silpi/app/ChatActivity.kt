@@ -13,6 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import java.io.ByteArrayOutputStream
@@ -120,7 +121,7 @@ class ChatActivity : AppCompatActivity() {
             val imageData = encodeImageForTest(imageUri)
 
             if (imageData.isBlank()) {
-                Toast.makeText(this, "Image is too large.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Image is too large. Please choose a smaller image.", Toast.LENGTH_SHORT).show()
                 return
             }
 
@@ -134,7 +135,7 @@ class ChatActivity : AppCompatActivity() {
     private fun encodeImageForTest(imageUri: Uri): String {
         val inputStream = contentResolver.openInputStream(imageUri) ?: return ""
         val bitmap = inputStream.use { BitmapFactory.decodeStream(it) } ?: return ""
-        val resizedBitmap = resizeBitmap(bitmap, 700)
+        val resizedBitmap = resizeBitmap(bitmap, 500)
         val outputStream = ByteArrayOutputStream()
         var quality = 70
         var imageBytes: ByteArray
@@ -144,9 +145,9 @@ class ChatActivity : AppCompatActivity() {
             resizedBitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
             imageBytes = outputStream.toByteArray()
             quality -= 10
-        } while (imageBytes.size > 700_000 && quality >= 30)
+        } while (imageBytes.size > 400_000 && quality >= 30)
 
-        if (imageBytes.size > 700_000) {
+        if (imageBytes.size > 400_000) {
             return ""
         }
 
@@ -195,24 +196,19 @@ class ChatActivity : AppCompatActivity() {
             val chatRoom = document.toObject(ChatRoom::class.java)
                     ?: throw IllegalStateException("Failed to load chat room.")
 
-            val updatedUnreadCount = chatRoom.unreadCount.toMutableMap()
+            val roomUpdates = mutableMapOf<String, Any>(
+                    "lastMessage" to lastMessage,
+                    "lastMessageTime" to chatMessage.timestamp
+            )
 
             for (userId in chatRoom.participants) {
                 if (userId != myUserId) {
-                    val currentCount = updatedUnreadCount[userId] ?: 0
-                    updatedUnreadCount[userId] = currentCount + 1
+                    roomUpdates["unreadCount.$userId"] = FieldValue.increment(1)
                 }
             }
 
             transaction.set(messageRef, chatMessage)
-            transaction.update(
-                    roomRef,
-                    mapOf(
-                            "lastMessage" to lastMessage,
-                            "lastMessageTime" to chatMessage.timestamp,
-                            "unreadCount" to updatedUnreadCount
-                    )
-            )
+            transaction.update(roomRef, roomUpdates)
         }
                 .addOnSuccessListener {
                     Log.d("ChatActivity", "Message sent")
@@ -226,22 +222,9 @@ class ChatActivity : AppCompatActivity() {
     private fun markAsRead() {
         val roomRef = db.collection("chats").document(chatRoomId)
 
-        roomRef.get()
-                .addOnSuccessListener { document ->
-                    val chatRoom = document.toObject(ChatRoom::class.java)
-
-                    if (chatRoom == null) return@addOnSuccessListener
-
-                    val updatedUnreadCount = chatRoom.unreadCount.toMutableMap()
-                    updatedUnreadCount[myUserId] = 0
-
-                    roomRef.update("unreadCount", updatedUnreadCount)
-                            .addOnFailureListener { e ->
-                                Log.e("ChatActivity", "Read update failed", e)
-                            }
-                }
+        roomRef.update("unreadCount.$myUserId", 0)
                 .addOnFailureListener { e ->
-                    Log.e("ChatActivity", "Chat room fetch failed", e)
+                    Log.e("ChatActivity", "Read update failed", e)
                 }
     }
 
