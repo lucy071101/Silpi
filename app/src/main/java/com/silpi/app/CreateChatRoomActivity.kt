@@ -92,15 +92,15 @@ class CreateChatRoomActivity : AppCompatActivity() {
         val roomName = etRoomName.text.toString().trim()
         val selectedUsers = selectUserAdapter.getSelectedUsers()
 
+        //채팅방 이름 검사
         if (selectedUsers.isEmpty()) {
-            Toast.makeText(this, "최소 1명 이상 선택하세요.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "최소 1명 이상 선택해", Toast.LENGTH_SHORT).show()
             return
         }
-
         val isGroup = selectedUsers.size >= 2
 
         if (isGroup && roomName.isEmpty()) {
-            Toast.makeText(this, "그룹 채팅방 이름을 입력하세요.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "그룹 채팅방 이름 입력해", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -137,7 +137,7 @@ class CreateChatRoomActivity : AppCompatActivity() {
 
         roomRef.set(chatRoom)
                 .addOnSuccessListener {
-                    Toast.makeText(this, "채팅방 생성 완료", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "그룹 채팅방 생성 완료", Toast.LENGTH_SHORT).show()
 
                     val intent = Intent(this, ChatActivity::class.java)
                     intent.putExtra("chatRoomId", roomId)

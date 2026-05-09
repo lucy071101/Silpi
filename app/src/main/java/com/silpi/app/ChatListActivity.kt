@@ -9,6 +9,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
@@ -167,7 +168,7 @@ class ChatListActivity : AppCompatActivity() {
                     Toast.makeText(this, "나가기 실패", Toast.LENGTH_SHORT).show()
                 }
     }
-
+    //임시로 테스트용 앱실행시 user ID 입력
     private fun registerTestUser() {
         val user = CurrentUserProvider.user(this)
 
