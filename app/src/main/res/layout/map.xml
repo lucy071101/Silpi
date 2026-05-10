@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="지도"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="#222222"
+            android:layout_marginBottom="20dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:gravity="center"
+            android:text="지도 표시 영역\nGoogle Maps API 연결 예정"
+            android:textSize="20sp"
+            android:textColor="#555555"
+            android:background="#E0E0E0"
+            android:layout_marginBottom="20dp"/>
+
+        <Button
+            android:id="@+id/btnCurrentLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="현재 위치 확인"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#4CAF50"/>
+
+        <Button
+            android:id="@+id/btnMeetingLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="모임 위치 표시"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#4CAF50"
+            android:layout_marginTop="12dp"/>
+
+        <Button
+            android:id="@+id/btnMeetingInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="모임 정보 조회"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#4CAF50"
+            android:layout_marginTop="12dp"/>
+
+        <TextView
+            android:id="@+id/txtMapResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="버튼을 눌러 지도 기능을 확인하세요."
+            android:textSize="18sp"
+            android:textColor="#333333"
+            android:background="#FFFFFF"
+            android:padding="16dp"
+            android:layout_marginTop="20dp"/>
+
+    </LinearLayout>
+</ScrollView>
