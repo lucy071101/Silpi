@@ -62,7 +62,7 @@ object CurrentUserProvider {
     }
 
     fun isProfileCompleted(context: Context): Boolean {
-        return prefs(context).getBoolean(KEY_PROFILE_COMPLETED, false)
+        return prefs(context).getBoolean(profileCompletedKey(context), false)
     }
 
     fun user(context: Context): User {
@@ -107,7 +107,7 @@ object CurrentUserProvider {
     fun markProfileCompleted(context: Context) {
         prefs(context)
                 .edit()
-                .putBoolean(KEY_PROFILE_COMPLETED, true)
+                .putBoolean(profileCompletedKey(context), true)
                 .apply()
     }
 
@@ -117,4 +117,8 @@ object CurrentUserProvider {
 
     private fun prefs(context: Context) =
             context.applicationContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+    private fun profileCompletedKey(context: Context): String {
+        return "${KEY_PROFILE_COMPLETED}_${userId(context)}"
+    }
 }

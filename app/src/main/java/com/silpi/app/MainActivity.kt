@@ -19,9 +19,7 @@ class MainActivity : AppCompatActivity() {
 
         // 이미 로그인된 상태면 홈으로 바로 이동
         if (auth.currentUser != null) {
-            val intent = Intent(this, HomeActivity::class.java)
-            startActivity(intent)
-            finish()
+            moveToNextScreen()
             return
         }
 
@@ -48,14 +46,7 @@ class MainActivity : AppCompatActivity() {
                     if (task.isSuccessful) {
                         Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show()
 
-                        val intent = if (CurrentUserProvider.isProfileCompleted(this)) {
-                            Intent(this, HomeActivity::class.java)
-                        } else {
-                            Intent(this, ProfileActivity::class.java)
-                                    .putExtra(ProfileActivity.EXTRA_FIRST_SETUP, true)
-                        }
-                        startActivity(intent)
-                        finish()
+                        moveToNextScreen()
                     } else {
                         Toast.makeText(
                             this,
@@ -98,5 +89,17 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
         }
+    }
+
+    private fun moveToNextScreen() {
+        val intent = if (CurrentUserProvider.isProfileCompleted(this)) {
+            Intent(this, HomeActivity::class.java)
+        } else {
+            Intent(this, ProfileActivity::class.java)
+                    .putExtra(ProfileActivity.EXTRA_FIRST_SETUP, true)
+        }
+
+        startActivity(intent)
+        finish()
     }
 }
