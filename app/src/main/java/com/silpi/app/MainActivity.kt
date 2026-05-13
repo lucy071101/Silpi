@@ -121,8 +121,16 @@ class MainActivity : AppCompatActivity() {
                 }
                 .addOnFailureListener {
                     Toast.makeText(this, "프로필 정보를 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
-                    moveToNextScreen(CurrentUserProvider.isProfileCompleted(this))
+                    auth.signOut()
+                    restartLoginScreen()
                 }
+    }
+
+    private fun restartLoginScreen() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+        finish()
     }
 
     private fun moveToNextScreen(profileCompleted: Boolean) {
