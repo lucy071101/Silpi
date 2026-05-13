@@ -7,19 +7,22 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
+    private lateinit var db: FirebaseFirestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         auth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
 
         // 이미 로그인된 상태면 홈으로 바로 이동
         if (auth.currentUser != null) {
-            moveToNextScreen()
+            loadProfileAndMove()
             return
         }
 
@@ -46,7 +49,7 @@ class MainActivity : AppCompatActivity() {
                     if (task.isSuccessful) {
                         Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show()
 
-                        moveToNextScreen()
+                        loadProfileAndMove()
                     } else {
                         Toast.makeText(
                             this,
@@ -91,8 +94,39 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun moveToNextScreen() {
-        val intent = if (CurrentUserProvider.isProfileCompleted(this)) {
+    private fun loadProfileAndMove() {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Toast.makeText(this, "로그인 정보를 확인할 수 없습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        db.collection("users")
+                .document(currentUser.uid)
+                .get()
+                .addOnSuccessListener { document ->
+                    val user = document.toObject(User::class.java)
+                    if (document.exists() && user != null) {
+                        CurrentUserProvider.saveUserProfile(this, user)
+                        moveToNextScreen(CurrentUserProvider.isProfileCompleted(user))
+                    } else {
+                        CurrentUserProvider.saveSignedInUser(
+                                context = this,
+                                userId = currentUser.uid,
+                                userName = "",
+                                email = currentUser.email.orEmpty()
+                        )
+                        moveToNextScreen(profileCompleted = false)
+                    }
+                }
+                .addOnFailureListener {
+                    Toast.makeText(this, "프로필 정보를 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                    moveToNextScreen(CurrentUserProvider.isProfileCompleted(this))
+                }
+    }
+
+    private fun moveToNextScreen(profileCompleted: Boolean) {
+        val intent = if (profileCompleted) {
             Intent(this, HomeActivity::class.java)
         } else {
             Intent(this, ProfileActivity::class.java)

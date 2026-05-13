@@ -65,6 +65,10 @@ object CurrentUserProvider {
         return prefs(context).getBoolean(profileCompletedKey(context), false)
     }
 
+    fun isProfileCompleted(user: User): Boolean {
+        return user.userName.isNotBlank()
+    }
+
     fun user(context: Context): User {
         return User(
                 userId = userId(context),
@@ -83,6 +87,20 @@ object CurrentUserProvider {
                 .putString(KEY_USER_ID, userId)
                 .putString(KEY_USER_NAME, userName)
                 .putString(KEY_EMAIL, email)
+                .apply()
+    }
+
+    fun saveUserProfile(context: Context, user: User) {
+        prefs(context)
+                .edit()
+                .putString(KEY_USER_ID, user.userId)
+                .putString(KEY_USER_NAME, user.userName)
+                .putString(KEY_EMAIL, user.email)
+                .putString(KEY_CITY, user.city)
+                .putString(KEY_BIO, user.bio)
+                .putString(KEY_INTERESTS, user.interests.joinToString("|"))
+                .putString(KEY_PROFILE_IMAGE_DATA, user.profileImageData)
+                .putBoolean(profileCompletedKey(user.userId), isProfileCompleted(user))
                 .apply()
     }
 
@@ -119,6 +137,10 @@ object CurrentUserProvider {
             context.applicationContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
     private fun profileCompletedKey(context: Context): String {
-        return "${KEY_PROFILE_COMPLETED}_${userId(context)}"
+        return profileCompletedKey(userId(context))
+    }
+
+    private fun profileCompletedKey(userId: String): String {
+        return "${KEY_PROFILE_COMPLETED}_$userId"
     }
 }
