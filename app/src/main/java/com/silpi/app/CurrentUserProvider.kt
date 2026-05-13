@@ -12,6 +12,7 @@ object CurrentUserProvider {
     private const val KEY_BIO = "bio"
     private const val KEY_INTERESTS = "interests"
     private const val KEY_PROFILE_IMAGE_DATA = "profile_image_data"
+    private const val KEY_PROFILE_COMPLETED = "profile_completed"
 
     fun userId(context: Context): String {
         val authUser = FirebaseAuth.getInstance().currentUser
@@ -60,6 +61,10 @@ object CurrentUserProvider {
         return prefs(context).getString(KEY_PROFILE_IMAGE_DATA, null) ?: ""
     }
 
+    fun isProfileCompleted(context: Context): Boolean {
+        return prefs(context).getBoolean(KEY_PROFILE_COMPLETED, false)
+    }
+
     fun user(context: Context): User {
         return User(
                 userId = userId(context),
@@ -96,6 +101,13 @@ object CurrentUserProvider {
                 .putString(KEY_BIO, bio)
                 .putString(KEY_INTERESTS, interests.joinToString("|"))
                 .putString(KEY_PROFILE_IMAGE_DATA, profileImageData)
+                .apply()
+    }
+
+    fun markProfileCompleted(context: Context) {
+        prefs(context)
+                .edit()
+                .putBoolean(KEY_PROFILE_COMPLETED, true)
                 .apply()
     }
 

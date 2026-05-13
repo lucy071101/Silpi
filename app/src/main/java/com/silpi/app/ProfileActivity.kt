@@ -120,6 +120,8 @@ class ProfileActivity : AppCompatActivity() {
                 .document(user.userId)
                 .set(user, SetOptions.merge())
                 .addOnSuccessListener {
+                    CurrentUserProvider.markProfileCompleted(this)
+
                     if (goHomeAfterSave) {
                         moveToHome()
                         return@addOnSuccessListener
