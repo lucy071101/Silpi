@@ -14,6 +14,7 @@ import java.util.Locale
 class ChatRoomAdapter(
         private val chatRoomList: MutableList<ChatRoom>,
         private val myUserId: String,
+        private val profileImagesByUserId: Map<String, String>,
         private val onRoomLongClick: (ChatRoom) -> Unit
 ) : RecyclerView.Adapter<ChatRoomAdapter.ChatRoomViewHolder>() {
 
@@ -46,6 +47,7 @@ class ChatRoomAdapter(
         holder.textViewRoomName.text = displayName
         holder.textViewLastMessage.text = lastMessageText
         holder.textViewTime.text = formatChatListTime(chatRoom.lastMessageTime)
+        bindProfileImage(holder.imageViewProfile, chatRoom)
 
         if (unread > 0) {
             holder.textViewUnreadCount.visibility = View.VISIBLE
@@ -84,6 +86,17 @@ class ChatRoomAdapter(
                 chatRoom.roomName.ifBlank { "이름 없는 채팅방" }
             }
         }
+    }
+
+    private fun bindProfileImage(imageView: ImageView, chatRoom: ChatRoom) {
+        if (chatRoom.group) {
+            imageView.setImageResource(R.mipmap.ic_launcher_round)
+            return
+        }
+
+        val otherUserId = chatRoom.participants.firstOrNull { it != myUserId }
+        val profileImageData = profileImagesByUserId[otherUserId].orEmpty()
+        ProfileImageHelper.setProfileImage(imageView, profileImageData)
     }
 
     private fun formatChatListTime(timestamp: Long): String {

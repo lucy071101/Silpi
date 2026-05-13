@@ -75,7 +75,8 @@ class CreateChatRoomActivity : AppCompatActivity() {
                             userList.add(
                                     SelectableUser(
                                             userId = user.userId,
-                                            userName = user.userName
+                                            userName = user.userName,
+                                            email = user.email
                                     )
                             )
                         }

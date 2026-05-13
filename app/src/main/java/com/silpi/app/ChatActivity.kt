@@ -8,6 +8,8 @@ import android.util.Base64
 import android.util.Log
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -25,9 +27,12 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var sendButton: ImageButton
     private lateinit var backButton: ImageButton
     private lateinit var addButton: ImageButton
+    private lateinit var imageProfile: ImageView
+    private lateinit var textViewUserName: TextView
 
     private lateinit var chatAdapter: ChatAdapter
     private val messageList = mutableListOf<ChatMessage>()
+    private val profileImagesByUserId = mutableMapOf<String, String>()
 
     private lateinit var db: FirebaseFirestore
     private var messageListener: ListenerRegistration? = null
@@ -64,6 +69,7 @@ class ChatActivity : AppCompatActivity() {
         setupRecyclerView()
         setupClickListeners()
         markAsRead()
+        loadRoomHeader()
         listenMessages()
     }
 
@@ -73,10 +79,12 @@ class ChatActivity : AppCompatActivity() {
         sendButton = findViewById(R.id.buttonSend)
         backButton = findViewById(R.id.buttonBack)
         addButton = findViewById(R.id.buttonAdd)
+        imageProfile = findViewById(R.id.imageProfile)
+        textViewUserName = findViewById(R.id.textViewUserName)
     }
 
     private fun setupRecyclerView() {
-        chatAdapter = ChatAdapter(messageList, myUserId)
+        chatAdapter = ChatAdapter(messageList, myUserId, profileImagesByUserId)
         chatRecyclerView.layoutManager = LinearLayoutManager(this)
         chatRecyclerView.adapter = chatAdapter
     }
@@ -228,6 +236,27 @@ class ChatActivity : AppCompatActivity() {
                 }
     }
 
+    private fun loadRoomHeader() {
+        db.collection("chats")
+                .document(chatRoomId)
+                .get()
+                .addOnSuccessListener { document ->
+                    val chatRoom = document.toObject(ChatRoom::class.java) ?: return@addOnSuccessListener
+                    if (chatRoom.group) {
+                        textViewUserName.text = chatRoom.roomName.ifBlank { "그룹 채팅방" }
+                        imageProfile.setImageResource(R.mipmap.ic_launcher_round)
+                    } else {
+                        val otherUserId = chatRoom.participants.firstOrNull { it != myUserId }
+                        textViewUserName.text = chatRoom.participantNames[otherUserId] ?: "채팅"
+                        if (otherUserId != null) {
+                            loadUserProfileImage(otherUserId) {
+                                ProfileImageHelper.setProfileImage(imageProfile, it)
+                            }
+                        }
+                    }
+                }
+    }
+
     private fun listenMessages() {
         messageListener = db.collection("chats")
                 .document(chatRoomId)
@@ -252,12 +281,39 @@ class ChatActivity : AppCompatActivity() {
                     }
 
                     chatAdapter.notifyDataSetChanged()
+                    loadMessageSenderProfiles()
 
                     if (messageList.isNotEmpty()) {
                         chatRecyclerView.scrollToPosition(messageList.size - 1)
                     }
 
                     markAsRead()
+                }
+    }
+
+    private fun loadMessageSenderProfiles() {
+        profileImagesByUserId[myUserId] = CurrentUserProvider.profileImageData(this)
+
+        val senderIds = messageList
+                .map { it.senderId }
+                .filter { it.isNotBlank() }
+                .distinct()
+
+        for (senderId in senderIds) {
+            loadUserProfileImage(senderId) { profileImageData ->
+                profileImagesByUserId[senderId] = profileImageData
+                chatAdapter.notifyDataSetChanged()
+            }
+        }
+    }
+
+    private fun loadUserProfileImage(userId: String, onLoaded: (String) -> Unit) {
+        db.collection("users")
+                .document(userId)
+                .get()
+                .addOnSuccessListener { document ->
+                    val user = document.toObject(User::class.java)
+                    onLoaded(user?.profileImageData.orEmpty())
                 }
     }
 

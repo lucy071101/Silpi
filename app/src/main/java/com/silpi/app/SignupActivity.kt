@@ -47,6 +47,8 @@ class SignupActivity : AppCompatActivity() {
                     if (task.isSuccessful) {
                         Toast.makeText(this, "회원가입 성공", Toast.LENGTH_SHORT).show()
 
+                        auth.signOut()
+
                         val intent = Intent(this, MainActivity::class.java)
                         startActivity(intent)
                         finish()

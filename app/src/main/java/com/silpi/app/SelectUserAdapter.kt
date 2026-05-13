@@ -27,7 +27,7 @@ class SelectUserAdapter(
         val user = userList[position]
 
         holder.textViewUserName.text = user.userName
-        holder.textViewUserId.text = user.userId
+        holder.textViewUserId.text = user.email.toHandle()
 
         holder.checkBoxUser.setOnCheckedChangeListener(null)
         holder.checkBoxUser.isChecked = user.isSelected
@@ -46,5 +46,10 @@ class SelectUserAdapter(
 
     fun getSelectedUsers(): List<SelectableUser> {
         return userList.filter { it.isSelected }
+    }
+
+    private fun String.toHandle(): String {
+        val handle = substringBefore("@").trim()
+        return if (handle.isNotEmpty()) "@$handle" else ""
     }
 }

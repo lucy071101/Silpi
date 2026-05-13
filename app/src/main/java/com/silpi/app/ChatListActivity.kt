@@ -18,6 +18,7 @@ class ChatListActivity : AppCompatActivity() {
     private lateinit var buttonAddRoom: ImageButton
     private lateinit var chatRoomAdapter: ChatRoomAdapter
     private val chatRoomList = mutableListOf<ChatRoom>()
+    private val profileImagesByUserId = mutableMapOf<String, String>()
 
     private lateinit var db: FirebaseFirestore
     private var chatRoomsListener: ListenerRegistration? = null
@@ -48,6 +49,7 @@ class ChatListActivity : AppCompatActivity() {
         chatRoomAdapter = ChatRoomAdapter(
                 chatRoomList = chatRoomList,
                 myUserId = myUserId,
+                profileImagesByUserId = profileImagesByUserId,
                 onRoomLongClick = { chatRoom ->
                     showExitDialog(chatRoom)
                 }
@@ -86,7 +88,13 @@ class ChatListActivity : AppCompatActivity() {
 
                     chatRoomList.sortByDescending { it.lastMessageTime }
                     chatRoomAdapter.notifyDataSetChanged()
+                    loadParticipantProfiles()
                 }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadParticipantProfiles()
     }
 
     override fun onDestroy() {
@@ -175,5 +183,26 @@ class ChatListActivity : AppCompatActivity() {
                 .collection("users")
                 .document(user.userId)
                 .set(user)
+    }
+
+    private fun loadParticipantProfiles() {
+        val participantIds = chatRoomList
+                .flatMap { it.participants }
+                .distinct()
+
+        if (participantIds.isEmpty()) return
+
+        for (userId in participantIds) {
+            db.collection("users")
+                    .document(userId)
+                    .get()
+                    .addOnSuccessListener { document ->
+                        val user = document.toObject(User::class.java)
+                        if (user != null) {
+                            profileImagesByUserId[userId] = user.profileImageData
+                            chatRoomAdapter.notifyDataSetChanged()
+                        }
+                    }
+        }
     }
 }

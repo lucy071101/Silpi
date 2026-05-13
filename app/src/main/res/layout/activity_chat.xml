@@ -35,15 +35,15 @@
                 android:minHeight="48dp"
                 android:src="@android:drawable/ic_media_previous" />
 
-            <ImageView
+            <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/imageProfile"
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:layout_marginStart="12dp"
-                android:background="@drawable/bg_profile_circle"
                 android:contentDescription="Profile"
                 android:scaleType="centerCrop"
-                android:src="@drawable/padang" />
+                android:src="@drawable/padang"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlaySilpiCircleImage" />
 
             <TextView
                 android:id="@+id/textViewUserName"

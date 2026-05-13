@@ -3,5 +3,6 @@ package com.silpi.app
 data class SelectableUser(
         val userId: String,
         val userName: String,
+        val email: String = "",
         var isSelected: Boolean = false
 )

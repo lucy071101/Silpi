@@ -48,7 +48,8 @@ class MainActivity : AppCompatActivity() {
                     if (task.isSuccessful) {
                         Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show()
 
-                        val intent = Intent(this, HomeActivity::class.java)
+                        val intent = Intent(this, ProfileActivity::class.java)
+                        intent.putExtra(ProfileActivity.EXTRA_FIRST_SETUP, true)
                         startActivity(intent)
                         finish()
                     } else {
