@@ -1,11 +1,11 @@
 package com.silpi.app
 
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
 import android.content.Intent
+import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 
 class SignupActivity : AppCompatActivity() {
@@ -45,20 +45,31 @@ class SignupActivity : AppCompatActivity() {
             }
 
             auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this) { task ->
-                    if (task.isSuccessful) {
-                        val user = auth.currentUser
-                        user?.sendEmailVerification()?.addOnCompleteListener { verificationTask ->
-                            if (verificationTask.isSuccessful) {
-                                Toast.makeText(this, "가입 성공! 이메일 인증 링크를 확인해주세요.", Toast.LENGTH_LONG).show()
-                                startActivity(Intent(this, MainActivity::class.java))
-                                finish()
+                    .addOnCompleteListener(this) { task ->
+                        if (task.isSuccessful) {
+                            val user = auth.currentUser
+                            user?.sendEmailVerification()?.addOnCompleteListener { verificationTask ->
+                                if (verificationTask.isSuccessful) {
+                                    auth.signOut()
+                                    Toast.makeText(
+                                            this,
+                                            "가입 성공! 이메일 인증 링크를 확인해주세요.",
+                                            Toast.LENGTH_LONG
+                                    ).show()
+                                    startActivity(Intent(this, MainActivity::class.java))
+                                    finish()
+                                } else {
+                                    Toast.makeText(
+                                            this,
+                                            "인증 메일 전송 실패: ${verificationTask.exception?.message}",
+                                            Toast.LENGTH_LONG
+                                    ).show()
+                                }
                             }
+                        } else {
+                            Toast.makeText(this, "회원가입 실패: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                         }
-                    } else {
-                        Toast.makeText(this, "회원가입 실패: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                     }
-                }
         }
 
         switchButton.setOnClickListener {

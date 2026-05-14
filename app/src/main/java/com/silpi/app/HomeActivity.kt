@@ -21,6 +21,7 @@ class HomeActivity : AppCompatActivity() {
         val meetingCreateButton = findViewById<Button>(R.id.meetingCreateButton)
         val meetingJoinButton = findViewById<Button>(R.id.meetingJoinButton)
         val mapButton = findViewById<Button>(R.id.mapButton)
+        val mypageButton = findViewById<Button>(R.id.mypageButton)
 
         chatButton.setOnClickListener {
             startActivity(Intent(this, ChatListActivity::class.java))
@@ -37,6 +38,11 @@ class HomeActivity : AppCompatActivity() {
         mapButton.setOnClickListener {
             startActivity(Intent(this, MapActivity::class.java))
         }
+
+        mypageButton.setOnClickListener {
+            startActivity(Intent(this, ProfileActivity::class.java))
+        }
+
         logoutButton.setOnClickListener {
             auth.signOut()
             CurrentUserProvider.clear(this)

@@ -2,17 +2,27 @@ package com.silpi.app
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.util.Base64
 import android.util.Log
+import android.view.View
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -25,9 +35,15 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var sendButton: ImageButton
     private lateinit var backButton: ImageButton
     private lateinit var addButton: ImageButton
+    private lateinit var moreButton: ImageButton
+    private lateinit var menuPanel: FrameLayout
+    private lateinit var imageProfile: ImageView
+    private lateinit var textViewUserName: TextView
 
     private lateinit var chatAdapter: ChatAdapter
     private val messageList = mutableListOf<ChatMessage>()
+    private val profileImagesByUserId = mutableMapOf<String, String>()
+    private var currentChatRoom: ChatRoom? = null
 
     private lateinit var db: FirebaseFirestore
     private var messageListener: ListenerRegistration? = null
@@ -51,7 +67,6 @@ class ChatActivity : AppCompatActivity() {
         db = FirebaseFirestore.getInstance()
         myUserId = CurrentUserProvider.userId(this)
         myUserName = CurrentUserProvider.userName(this)
-
         chatRoomId = intent.getStringExtra("chatRoomId") ?: ""
 
         if (chatRoomId.isEmpty()) {
@@ -64,6 +79,7 @@ class ChatActivity : AppCompatActivity() {
         setupRecyclerView()
         setupClickListeners()
         markAsRead()
+        loadRoomHeader()
         listenMessages()
     }
 
@@ -73,10 +89,14 @@ class ChatActivity : AppCompatActivity() {
         sendButton = findViewById(R.id.buttonSend)
         backButton = findViewById(R.id.buttonBack)
         addButton = findViewById(R.id.buttonAdd)
+        moreButton = findViewById(R.id.buttonMore)
+        menuPanel = findViewById(R.id.layoutChatMenuPanel)
+        imageProfile = findViewById(R.id.imageProfile)
+        textViewUserName = findViewById(R.id.textViewUserName)
     }
 
     private fun setupRecyclerView() {
-        chatAdapter = ChatAdapter(messageList, myUserId)
+        chatAdapter = ChatAdapter(messageList, myUserId, profileImagesByUserId)
         chatRecyclerView.layoutManager = LinearLayoutManager(this)
         chatRecyclerView.adapter = chatAdapter
     }
@@ -87,12 +107,19 @@ class ChatActivity : AppCompatActivity() {
         }
 
         backButton.setOnClickListener {
-            finish()
+            if (menuPanel.visibility == View.VISIBLE) {
+                closeMenuPanel()
+            } else {
+                finish()
+            }
+        }
+
+        moreButton.setOnClickListener {
+            showChatRoomMenu()
         }
 
         sendButton.setOnClickListener {
             val message = messageEditText.text.toString().trim()
-
             if (message.isNotEmpty()) {
                 sendMessage(message)
                 messageEditText.setText("")
@@ -119,7 +146,6 @@ class ChatActivity : AppCompatActivity() {
     private fun prepareAndSendImage(imageUri: Uri) {
         try {
             val imageData = encodeImageForTest(imageUri)
-
             if (imageData.isBlank()) {
                 Toast.makeText(this, "Image is too large. Please choose a smaller image.", Toast.LENGTH_SHORT).show()
                 return
@@ -147,10 +173,7 @@ class ChatActivity : AppCompatActivity() {
             quality -= 10
         } while (imageBytes.size > 400_000 && quality >= 30)
 
-        if (imageBytes.size > 400_000) {
-            return ""
-        }
-
+        if (imageBytes.size > 400_000) return ""
         return Base64.encodeToString(imageBytes, Base64.DEFAULT)
     }
 
@@ -158,9 +181,7 @@ class ChatActivity : AppCompatActivity() {
         val width = bitmap.width
         val height = bitmap.height
 
-        if (width <= maxSize && height <= maxSize) {
-            return bitmap
-        }
+        if (width <= maxSize && height <= maxSize) return bitmap
 
         val ratio = if (width > height) {
             maxSize.toFloat() / width.toFloat()
@@ -168,10 +189,12 @@ class ChatActivity : AppCompatActivity() {
             maxSize.toFloat() / height.toFloat()
         }
 
-        val resizedWidth = (width * ratio).toInt()
-        val resizedHeight = (height * ratio).toInt()
-
-        return Bitmap.createScaledBitmap(bitmap, resizedWidth, resizedHeight, true)
+        return Bitmap.createScaledBitmap(
+                bitmap,
+                (width * ratio).toInt(),
+                (height * ratio).toInt(),
+                true
+        )
     }
 
     private fun sendImageMessage(imageData: String) {
@@ -198,7 +221,8 @@ class ChatActivity : AppCompatActivity() {
 
             val roomUpdates = mutableMapOf<String, Any>(
                     "lastMessage" to lastMessage,
-                    "lastMessageTime" to chatMessage.timestamp
+                    "lastMessageTime" to chatMessage.timestamp,
+                    "lastMessageSentAt" to FieldValue.serverTimestamp()
             )
 
             for (userId in chatRoom.participants) {
@@ -207,7 +231,7 @@ class ChatActivity : AppCompatActivity() {
                 }
             }
 
-            transaction.set(messageRef, chatMessage)
+            transaction.set(messageRef, createMessageData(chatMessage))
             transaction.update(roomRef, roomUpdates)
         }
                 .addOnSuccessListener {
@@ -220,21 +244,287 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun markAsRead() {
-        val roomRef = db.collection("chats").document(chatRoomId)
-
-        roomRef.update("unreadCount.$myUserId", 0)
+        db.collection("chats")
+                .document(chatRoomId)
+                .update("unreadCount.$myUserId", 0)
                 .addOnFailureListener { e ->
                     Log.e("ChatActivity", "Read update failed", e)
                 }
+    }
+
+    private fun createMessageData(chatMessage: ChatMessage): Map<String, Any> {
+        return mapOf(
+                "message" to chatMessage.message,
+                "senderId" to chatMessage.senderId,
+                "senderName" to chatMessage.senderName,
+                "imageUrl" to chatMessage.imageUrl,
+                "imageData" to chatMessage.imageData,
+                "messageType" to chatMessage.messageType,
+                "timestamp" to chatMessage.timestamp,
+                "sentAt" to FieldValue.serverTimestamp()
+        )
+    }
+
+    private fun loadRoomHeader() {
+        db.collection("chats")
+                .document(chatRoomId)
+                .get()
+                .addOnSuccessListener { document ->
+                    val chatRoom = document.toObject(ChatRoom::class.java) ?: return@addOnSuccessListener
+                    currentChatRoom = chatRoom.copy(roomId = document.id)
+
+                    if (chatRoom.group) {
+                        bindGroupRoomHeader(chatRoom)
+                        return@addOnSuccessListener
+                    }
+
+                    val otherUserId = chatRoom.participants.firstOrNull { it != myUserId }
+                    textViewUserName.text = chatRoom.participantNames[otherUserId] ?: "채팅"
+                    imageProfile.visibility = View.VISIBLE
+                    if (otherUserId != null) {
+                        loadUserProfileImage(otherUserId) {
+                            ProfileImageHelper.setProfileImage(imageProfile, it)
+                        }
+                    }
+                }
+    }
+
+    private fun bindGroupRoomHeader(chatRoom: ChatRoom) {
+        val roomName = chatRoom.roomName.ifBlank { "그룹 채팅방" }
+        val memberCountText = chatRoom.participants.size.toString()
+        val title = "$roomName $memberCountText"
+        val memberCountStart = title.length - memberCountText.length
+        val spannableTitle = SpannableString(title)
+
+        spannableTitle.setSpan(
+                ForegroundColorSpan(Color.parseColor("#888888")),
+                memberCountStart,
+                title.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+
+        imageProfile.visibility = View.GONE
+        textViewUserName.text = spannableTitle
+    }
+
+    private fun showChatRoomMenu() {
+        val chatRoom = currentChatRoom
+        if (chatRoom == null) {
+            Toast.makeText(this, "채팅방 정보를 불러오는 중입니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        loadParticipants(chatRoom) { participants ->
+            bindMenuHeader(menuPanel, chatRoom, participants)
+            bindMenuParticipants(menuPanel, participants)
+            bindMenuActions(menuPanel, chatRoom)
+            openMenuPanel()
+        }
+    }
+
+    private fun openMenuPanel() {
+        menuPanel.visibility = View.VISIBLE
+        menuPanel.post {
+            menuPanel.translationX = menuPanel.width.toFloat()
+            menuPanel.animate()
+                    .translationX(0f)
+                    .setDuration(220L)
+                    .start()
+        }
+    }
+
+    private fun closeMenuPanel() {
+        menuPanel.animate()
+                .translationX(menuPanel.width.toFloat())
+                .setDuration(200L)
+                .withEndAction {
+                    menuPanel.visibility = View.GONE
+                    menuPanel.translationX = 0f
+                }
+                .start()
+    }
+
+    private fun bindMenuHeader(view: View, chatRoom: ChatRoom, participants: List<ChatParticipant>) {
+        val layoutProfileCluster = view.findViewById<View>(R.id.layoutMenuProfileCluster)
+        val imageSingleProfile = view.findViewById<ShapeableImageView>(R.id.imageMenuSingleProfile)
+        val textViewRoomName = view.findViewById<TextView>(R.id.textViewMenuRoomName)
+
+        if (chatRoom.group) {
+            layoutProfileCluster.visibility = View.VISIBLE
+            imageSingleProfile.visibility = View.GONE
+            bindGroupProfileCluster(view, participants.take(4))
+            textViewRoomName.text = chatRoom.roomName.ifBlank { "그룹 채팅방" }
+        } else {
+            val otherParticipant = participants.firstOrNull { !it.isMe } ?: participants.firstOrNull()
+            layoutProfileCluster.visibility = View.GONE
+            imageSingleProfile.visibility = View.VISIBLE
+            ProfileImageHelper.setProfileImage(imageSingleProfile, otherParticipant?.profileImageData.orEmpty())
+            textViewRoomName.text = otherParticipant?.userName ?: "채팅방"
+        }
+    }
+
+    private fun bindGroupProfileCluster(view: View, participants: List<ChatParticipant>) {
+        val imageViews = listOf<ShapeableImageView>(
+                view.findViewById(R.id.imageMenuProfile1),
+                view.findViewById(R.id.imageMenuProfile2),
+                view.findViewById(R.id.imageMenuProfile3),
+                view.findViewById(R.id.imageMenuProfile4)
+        )
+
+        for (index in imageViews.indices) {
+            val imageView = imageViews[index]
+            val participant = participants.getOrNull(index)
+            if (participant == null) {
+                imageView.visibility = View.INVISIBLE
+            } else {
+                imageView.visibility = View.VISIBLE
+                ProfileImageHelper.setProfileImage(imageView, participant.profileImageData)
+            }
+        }
+    }
+
+    private fun bindMenuParticipants(view: View, participants: List<ChatParticipant>) {
+        val participantTitle = view.findViewById<TextView>(R.id.textViewMenuParticipantTitle)
+        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerViewMenuParticipants)
+        val showAllText = view.findViewById<TextView>(R.id.textViewShowAllParticipants)
+
+        val visibleParticipants = participants.take(30)
+        participantTitle.text = "대화상대 ${participants.size}"
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = ChatParticipantAdapter(visibleParticipants)
+
+        showAllText.visibility = if (participants.size > 30) View.VISIBLE else View.GONE
+        showAllText.text = "전체보기 (${participants.size})"
+    }
+
+    private fun bindMenuActions(view: View, chatRoom: ChatRoom) {
+        view.findViewById<ImageButton>(R.id.buttonCloseMenu).setOnClickListener {
+            closeMenuPanel()
+        }
+
+        view.findViewById<TextView>(R.id.textViewExitChatRoom).setOnClickListener {
+            confirmExitChatRoom(chatRoom)
+        }
+
+        val createdInfo = view.findViewById<TextView>(R.id.textViewMenuCreatedInfo)
+        val creatorName = chatRoom.participantNames[chatRoom.createdBy].orEmpty()
+        createdInfo.text = if (creatorName.isNotBlank()) {
+            "${creatorName}님이 만든 채팅방이에요."
+        } else {
+            "채팅방 정보"
+        }
+    }
+
+    private fun confirmExitChatRoom(chatRoom: ChatRoom) {
+        AlertDialog.Builder(this)
+                .setTitle("채팅방 나가기")
+                .setMessage("이 채팅방에서 나가시겠습니까?")
+                .setNegativeButton("취소", null)
+                .setPositiveButton("나가기") { _, _ ->
+                    exitChatRoom(chatRoom)
+                }
+                .show()
+    }
+
+    private fun exitChatRoom(chatRoom: ChatRoom) {
+        val roomRef = db.collection("chats").document(chatRoomId)
+
+        roomRef.get()
+                .addOnSuccessListener { document ->
+                    val currentRoom = document.toObject(ChatRoom::class.java)
+                    if (currentRoom == null) {
+                        Toast.makeText(this, "채팅방 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
+                        return@addOnSuccessListener
+                    }
+
+                    val updatedParticipants = currentRoom.participants.filter { it != myUserId }
+                    val updatedParticipantNames = currentRoom.participantNames.toMutableMap()
+                    val updatedUnreadCount = currentRoom.unreadCount.toMutableMap()
+                    val updatedSearchNames = currentRoom.searchNames.toMutableMap()
+
+                    updatedParticipantNames.remove(myUserId)
+                    updatedUnreadCount.remove(myUserId)
+                    updatedSearchNames.remove(myUserId)
+
+                    if (updatedParticipants.isEmpty()) {
+                        roomRef.delete()
+                                .addOnSuccessListener { finish() }
+                                .addOnFailureListener { e ->
+                                    Log.e("ChatActivity", "Chat room delete failed", e)
+                                    Toast.makeText(this, "채팅방 나가기에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                                }
+                    } else {
+                        val updates = mapOf(
+                                "participants" to updatedParticipants,
+                                "participantNames" to updatedParticipantNames,
+                                "unreadCount" to updatedUnreadCount,
+                                "searchNames" to updatedSearchNames
+                        )
+
+                        roomRef.update(updates)
+                                .addOnSuccessListener { finish() }
+                                .addOnFailureListener { e ->
+                                    Log.e("ChatActivity", "Chat room exit failed", e)
+                                    Toast.makeText(this, "채팅방 나가기에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                                }
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e("ChatActivity", "Chat room load failed", e)
+                    Toast.makeText(this, "채팅방 나가기에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                }
+    }
+
+    private fun loadParticipants(chatRoom: ChatRoom, onLoaded: (List<ChatParticipant>) -> Unit) {
+        val participantIds = chatRoom.participants
+        if (participantIds.isEmpty()) {
+            onLoaded(emptyList())
+            return
+        }
+
+        val loadedParticipants = mutableMapOf<String, ChatParticipant>()
+        var remainingCount = participantIds.size
+
+        for (userId in participantIds) {
+            db.collection("users")
+                    .document(userId)
+                    .get()
+                    .addOnSuccessListener { document ->
+                        val user = document.toObject(User::class.java)
+                        val participantName = user?.userName
+                                ?: chatRoom.participantNames[userId]
+                                ?: if (userId == myUserId) myUserName else "사용자"
+
+                        loadedParticipants[userId] = ChatParticipant(
+                                userId = userId,
+                                userName = participantName,
+                                profileImageData = user?.profileImageData.orEmpty(),
+                                isMe = userId == myUserId
+                        )
+                    }
+                    .addOnFailureListener {
+                        loadedParticipants[userId] = ChatParticipant(
+                                userId = userId,
+                                userName = chatRoom.participantNames[userId]
+                                        ?: if (userId == myUserId) myUserName else "사용자",
+                                profileImageData = "",
+                                isMe = userId == myUserId
+                        )
+                    }
+                    .addOnCompleteListener {
+                        remainingCount -= 1
+                        if (remainingCount == 0) {
+                            onLoaded(participantIds.mapNotNull { loadedParticipants[it] })
+                        }
+                    }
+        }
     }
 
     private fun listenMessages() {
         messageListener = db.collection("chats")
                 .document(chatRoomId)
                 .collection("messages")
-                .orderBy("timestamp")
                 .addSnapshotListener { snapshot, error ->
-
                     if (error != null) {
                         Log.e("ChatActivity", "Message fetch failed", error)
                         return@addSnapshotListener
@@ -244,14 +534,22 @@ class ChatActivity : AppCompatActivity() {
 
                     messageList.clear()
 
-                    for (document in snapshot.documents) {
+                    val loadedMessages = snapshot.documents.mapNotNull { document ->
                         val chatMessage = document.toObject(ChatMessage::class.java)
-                        if (chatMessage != null) {
-                            messageList.add(chatMessage)
+                        if (chatMessage == null) {
+                            null
+                        } else {
+                            val displayTimestamp =
+                                    ChatTimeHelper.readMillis(document, "sentAt")
+                                            ?: chatMessage.timestamp
+                            chatMessage.copy(timestamp = displayTimestamp)
                         }
                     }
 
+                    messageList.addAll(loadedMessages.sortedBy { it.timestamp })
+
                     chatAdapter.notifyDataSetChanged()
+                    loadMessageSenderProfiles()
 
                     if (messageList.isNotEmpty()) {
                         chatRecyclerView.scrollToPosition(messageList.size - 1)
@@ -259,6 +557,40 @@ class ChatActivity : AppCompatActivity() {
 
                     markAsRead()
                 }
+    }
+
+    private fun loadMessageSenderProfiles() {
+        profileImagesByUserId[myUserId] = CurrentUserProvider.profileImageData(this)
+
+        val senderIds = messageList
+                .map { it.senderId }
+                .filter { it.isNotBlank() }
+                .distinct()
+
+        for (senderId in senderIds) {
+            loadUserProfileImage(senderId) { profileImageData ->
+                profileImagesByUserId[senderId] = profileImageData
+                chatAdapter.notifyDataSetChanged()
+            }
+        }
+    }
+
+    private fun loadUserProfileImage(userId: String, onLoaded: (String) -> Unit) {
+        db.collection("users")
+                .document(userId)
+                .get()
+                .addOnSuccessListener { document ->
+                    val user = document.toObject(User::class.java)
+                    onLoaded(user?.profileImageData.orEmpty())
+                }
+    }
+
+    override fun onBackPressed() {
+        if (menuPanel.visibility == View.VISIBLE) {
+            closeMenuPanel()
+        } else {
+            super.onBackPressed()
+        }
     }
 
     override fun onDestroy() {

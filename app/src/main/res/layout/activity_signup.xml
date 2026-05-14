@@ -38,14 +38,14 @@
         android:id="@+id/confirmButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Create Account"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="16dp"
+        android:text="Create Account" />
 
     <Button
         android:id="@+id/switchButton"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Already have an account? Log in"
-        style="@style/Widget.MaterialComponents.Button.TextButton" />
+        android:text="Already have an account? Log in" />
 
 </LinearLayout>
