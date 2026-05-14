@@ -17,10 +17,10 @@ class MainActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
 
-        // 이미 로그인된 상태면 홈으로 바로 이동
-        if (auth.currentUser != null) {
-            val intent = Intent(this, HomeActivity::class.java)
-            startActivity(intent)
+        // 1. 자동 로그인 체크 (인증된 사용자만)
+        val currentUser = auth.currentUser
+        if (currentUser != null && currentUser.isEmailVerified) {
+            startActivity(Intent(this, HomeActivity::class.java))
             finish()
             return
         }
@@ -33,7 +33,6 @@ class MainActivity : AppCompatActivity() {
         val switchButton = findViewById<Button>(R.id.switchButton)
         val recoveryButton = findViewById<Button>(R.id.recoveryButton)
 
-        // 로그인
         confirmButton.setOnClickListener {
             val email = emailInput.text.toString().trim()
             val password = passwordInput.text.toString().trim()
@@ -46,52 +45,38 @@ class MainActivity : AppCompatActivity() {
             auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
-                        Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show()
-
-                        val intent = Intent(this, HomeActivity::class.java)
-                        startActivity(intent)
-                        finish()
+                        val user = auth.currentUser
+                        user?.reload()?.addOnCompleteListener { _ ->
+                            if (user != null && user.isEmailVerified) {
+                                Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show()
+                                startActivity(Intent(this, HomeActivity::class.java))
+                                finish()
+                            } else {
+                                auth.signOut()
+                                Toast.makeText(this, "이메일 인증이 필요합니다.", Toast.LENGTH_LONG).show()
+                            }
+                        }
                     } else {
-                        Toast.makeText(
-                            this,
-                            "이메일 또는 비밀번호 오류",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(this, "이메일 또는 비밀번호 오류", Toast.LENGTH_SHORT).show()
                     }
                 }
         }
 
-        // 회원가입 화면 이동
         switchButton.setOnClickListener {
-            val intent = Intent(this, SignupActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, SignupActivity::class.java))
         }
 
-        // 비밀번호 재설정 메일 전송
         recoveryButton.setOnClickListener {
             val email = emailInput.text.toString().trim()
-
             if (email.isEmpty()) {
                 Toast.makeText(this, "이메일을 입력하세요", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
-            auth.sendPasswordResetEmail(email)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        Toast.makeText(
-                            this,
-                            "비밀번호 재설정 메일을 보냈습니다",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    } else {
-                        Toast.makeText(
-                            this,
-                            "메일 전송 실패: ${task.exception?.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
+            auth.sendPasswordResetEmail(email).addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(this, "재설정 메일을 보냈습니다", Toast.LENGTH_LONG).show()
                 }
+            }
         }
     }
 }
