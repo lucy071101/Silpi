@@ -73,7 +73,6 @@ class MainActivity : AppCompatActivity() {
 
         recoveryButton.setOnClickListener {
             val email = emailInput.text.toString().trim()
-
             if (email.isEmpty()) {
                 Toast.makeText(this, "이메일을 입력하세요", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
