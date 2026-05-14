@@ -4,12 +4,9 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.google.android.material.imageview.ShapeableImageView
 
 class ChatRoomAdapter(
         private val chatRoomList: MutableList<ChatRoom>,
@@ -19,7 +16,14 @@ class ChatRoomAdapter(
 ) : RecyclerView.Adapter<ChatRoomAdapter.ChatRoomViewHolder>() {
 
     class ChatRoomViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val imageViewProfile: ImageView = itemView.findViewById(R.id.imageViewProfile)
+        val layoutGroupProfileCluster: View = itemView.findViewById(R.id.layoutGroupProfileCluster)
+        val imageViewProfile: ShapeableImageView = itemView.findViewById(R.id.imageViewProfile)
+        val imageGroupProfiles: List<ShapeableImageView> = listOf(
+                itemView.findViewById(R.id.imageGroupProfile1),
+                itemView.findViewById(R.id.imageGroupProfile2),
+                itemView.findViewById(R.id.imageGroupProfile3),
+                itemView.findViewById(R.id.imageGroupProfile4)
+        )
         val textViewRoomName: TextView = itemView.findViewById(R.id.textViewRoomName)
         val textViewLastMessage: TextView = itemView.findViewById(R.id.textViewLastMessage)
         val textViewTime: TextView = itemView.findViewById(R.id.textViewTime)
@@ -34,20 +38,12 @@ class ChatRoomAdapter(
 
     override fun onBindViewHolder(holder: ChatRoomViewHolder, position: Int) {
         val chatRoom = chatRoomList[position]
-
-        val displayName = getDisplayRoomName(chatRoom)
-        val lastMessageText = if (chatRoom.lastMessage.isBlank()) {
-            "대화를 시작해보세요"
-        } else {
-            chatRoom.lastMessage
-        }
-
         val unread = chatRoom.unreadCount[myUserId] ?: 0
 
-        holder.textViewRoomName.text = displayName
-        holder.textViewLastMessage.text = lastMessageText
+        holder.textViewRoomName.text = getDisplayRoomName(chatRoom)
+        holder.textViewLastMessage.text = chatRoom.lastMessage.ifBlank { "대화를 시작해보세요" }
         holder.textViewTime.text = formatChatListTime(chatRoom.lastMessageTime)
-        bindProfileImage(holder.imageViewProfile, chatRoom)
+        bindProfileImage(holder, chatRoom)
 
         if (unread > 0) {
             holder.textViewUnreadCount.visibility = View.VISIBLE
@@ -77,7 +73,7 @@ class ChatRoomAdapter(
 
     private fun getDisplayRoomName(chatRoom: ChatRoom): String {
         return if (chatRoom.group) {
-            if (chatRoom.roomName.isNotBlank()) chatRoom.roomName else "그룹 채팅방"
+            chatRoom.roomName.ifBlank { "그룹 채팅방" }
         } else {
             val otherUserId = chatRoom.participants.firstOrNull { it != myUserId }
             if (otherUserId != null) {
@@ -88,21 +84,36 @@ class ChatRoomAdapter(
         }
     }
 
-    private fun bindProfileImage(imageView: ImageView, chatRoom: ChatRoom) {
+    private fun bindProfileImage(holder: ChatRoomViewHolder, chatRoom: ChatRoom) {
         if (chatRoom.group) {
-            imageView.setImageResource(R.mipmap.ic_launcher_round)
+            holder.imageViewProfile.visibility = View.INVISIBLE
+            holder.layoutGroupProfileCluster.visibility = View.VISIBLE
+            bindGroupProfileCluster(holder, chatRoom.participants.take(4))
             return
         }
 
+        holder.layoutGroupProfileCluster.visibility = View.GONE
+        holder.imageViewProfile.visibility = View.VISIBLE
         val otherUserId = chatRoom.participants.firstOrNull { it != myUserId }
         val profileImageData = profileImagesByUserId[otherUserId].orEmpty()
-        ProfileImageHelper.setProfileImage(imageView, profileImageData)
+        ProfileImageHelper.setProfileImage(holder.imageViewProfile, profileImageData)
+    }
+
+    private fun bindGroupProfileCluster(holder: ChatRoomViewHolder, participantIds: List<String>) {
+        for (index in holder.imageGroupProfiles.indices) {
+            val imageView = holder.imageGroupProfiles[index]
+            val userId = participantIds.getOrNull(index)
+            if (userId == null) {
+                imageView.visibility = View.INVISIBLE
+            } else {
+                imageView.visibility = View.VISIBLE
+                ProfileImageHelper.setProfileImage(imageView, profileImagesByUserId[userId].orEmpty())
+            }
+        }
     }
 
     private fun formatChatListTime(timestamp: Long): String {
         if (timestamp == 0L) return ""
-
-        val formatter = SimpleDateFormat("a h:mm", Locale.KOREAN)
-        return formatter.format(Date(timestamp))
+        return ChatTimeHelper.formatChatTime(timestamp)
     }
 }

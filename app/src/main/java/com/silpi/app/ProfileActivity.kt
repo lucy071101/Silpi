@@ -10,6 +10,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -21,7 +22,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private lateinit var buttonBack: ImageButton
-    private lateinit var buttonSave: ImageButton
+    private lateinit var buttonSave: TextView
     private lateinit var imageProfile: ImageView
     private lateinit var editTextName: EditText
     private lateinit var editTextCity: EditText
@@ -34,16 +35,18 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var db: FirebaseFirestore
     private var profileImageData: String = ""
     private var isFirstSetup: Boolean = false
+    private var isEditing: Boolean = false
     private var profileLoadFailed: Boolean = false
-    private val interests = listOf("게임", "독서", "음악 감상", "카페 탐방", "러닝", "영화")
+
+    private val interestOptions = listOf("게임", "독서", "음악 감상", "카페 탐방", "러닝", "영화", "맛집", "여행", "운동", "공부")
+    private val selectedInterests = mutableListOf<String>()
 
     private val imagePickerLauncher = registerForActivityResult(
             ActivityResultContracts.GetContent()
     ) { imageUri ->
-        if (imageUri != null) {
+        if (imageUri != null && isEditing && !profileLoadFailed) {
             profileImageData = ProfileImageHelper.encodeProfileImage(this, imageUri)
             ProfileImageHelper.setProfileImage(imageProfile, profileImageData)
-            saveProfile(showToast = false)
         }
     }
 
@@ -54,10 +57,12 @@ class ProfileActivity : AppCompatActivity() {
         db = FirebaseFirestore.getInstance()
         isFirstSetup = intent.getBooleanExtra(EXTRA_FIRST_SETUP, false)
         profileLoadFailed = intent.getBooleanExtra(EXTRA_PROFILE_LOAD_FAILED, false)
+        isEditing = isFirstSetup && !profileLoadFailed
 
         initViews()
         bindProfile()
         setupClickListeners()
+        applyEditMode()
     }
 
     private fun initViews() {
@@ -79,9 +84,13 @@ class ProfileActivity : AppCompatActivity() {
         } else {
             editTextName.setText(CurrentUserProvider.userName(this))
         }
+
         editTextCity.setText(CurrentUserProvider.city(this))
         editTextBio.setText(CurrentUserProvider.bio(this))
-        textViewInterests.text = interests.joinToString("   ") { interest -> "#$interest" }
+
+        selectedInterests.clear()
+        selectedInterests.addAll(CurrentUserProvider.interests(this))
+        updateInterestText()
 
         profileImageData = CurrentUserProvider.profileImageData(this)
         ProfileImageHelper.setProfileImage(imageProfile, profileImageData)
@@ -101,17 +110,90 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         imageProfile.setOnClickListener {
-            if (!profileLoadFailed) {
+            if (isEditing && !profileLoadFailed) {
                 imagePickerLauncher.launch("image/*")
             }
         }
 
+        textViewInterests.setOnClickListener {
+            if (isEditing && !profileLoadFailed) {
+                showInterestDialog()
+            }
+        }
+
         buttonSave.setOnClickListener {
+            if (profileLoadFailed) return@setOnClickListener
+
+            if (!isEditing) {
+                isEditing = true
+                applyEditMode()
+                return@setOnClickListener
+            }
+
             saveProfile(showToast = true, goHomeAfterSave = isFirstSetup)
         }
 
         buttonRetryProfileLoad.setOnClickListener {
             retryProfileLoad()
+        }
+    }
+
+    private fun applyEditMode() {
+        if (profileLoadFailed) return
+
+        buttonSave.text = if (isEditing) "저장" else "수정"
+
+        imageProfile.isEnabled = isEditing
+        textViewInterests.isEnabled = isEditing
+        textViewInterests.alpha = if (isEditing) 1.0f else 0.92f
+
+        setEditTextEditable(editTextName, isEditing)
+        setEditTextEditable(editTextCity, isEditing)
+        setEditTextEditable(editTextBio, isEditing)
+    }
+
+    private fun setEditTextEditable(editText: EditText, editable: Boolean) {
+        editText.isFocusable = editable
+        editText.isFocusableInTouchMode = editable
+        editText.isCursorVisible = editable
+        editText.isLongClickable = editable
+    }
+
+    private fun showInterestDialog() {
+        val checkedItems = interestOptions
+                .map { selectedInterests.contains(it) }
+                .toBooleanArray()
+
+        AlertDialog.Builder(this)
+                .setTitle("취미 및 관심사 선택")
+                .setMultiChoiceItems(interestOptions.toTypedArray(), checkedItems) { _, which, isChecked ->
+                    val interest = interestOptions[which]
+                    if (isChecked) {
+                        if (!selectedInterests.contains(interest)) {
+                            selectedInterests.add(interest)
+                        }
+                    } else {
+                        selectedInterests.remove(interest)
+                    }
+                }
+                .setNegativeButton("취소") { _, _ ->
+                    selectedInterests.clear()
+                    selectedInterests.addAll(
+                            interestOptions.filterIndexed { index, _ -> checkedItems[index] }
+                    )
+                    updateInterestText()
+                }
+                .setPositiveButton("확인") { _, _ ->
+                    updateInterestText()
+                }
+                .show()
+    }
+
+    private fun updateInterestText() {
+        textViewInterests.text = if (selectedInterests.isEmpty()) {
+            "관심사를 선택하세요"
+        } else {
+            selectedInterests.joinToString("   ") { interest -> "#$interest" }
         }
     }
 
@@ -122,12 +204,12 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         val enteredUserName = editTextName.text.toString().trim()
-        if (isFirstSetup && enteredUserName.isBlank()) {
+        if (enteredUserName.isBlank()) {
             Toast.makeText(this, "사용자명을 입력해주세요.", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val userName = enteredUserName.ifBlank { TestUser.USER_NAME }
+        val userName = enteredUserName
         val city = editTextCity.text.toString().trim().ifBlank { "서울시 강남구" }
         val bio = editTextBio.text.toString().trim()
 
@@ -136,7 +218,7 @@ class ProfileActivity : AppCompatActivity() {
                 userName = userName,
                 city = city,
                 bio = bio,
-                interests = interests,
+                interests = selectedInterests,
                 profileImageData = profileImageData
         )
 
@@ -150,6 +232,10 @@ class ProfileActivity : AppCompatActivity() {
                         moveToHome()
                         return@addOnSuccessListener
                     }
+
+                    isEditing = false
+                    applyEditMode()
+
                     if (showToast) {
                         Toast.makeText(this, "프로필이 저장되었습니다.", Toast.LENGTH_SHORT).show()
                     }
@@ -174,9 +260,10 @@ class ProfileActivity : AppCompatActivity() {
         buttonSave.isEnabled = false
         buttonSave.alpha = 0.35f
         imageProfile.isEnabled = false
-        editTextName.isEnabled = false
-        editTextCity.isEnabled = false
-        editTextBio.isEnabled = false
+        textViewInterests.isEnabled = false
+        setEditTextEditable(editTextName, false)
+        setEditTextEditable(editTextCity, false)
+        setEditTextEditable(editTextBio, false)
     }
 
     private fun retryProfileLoad() {

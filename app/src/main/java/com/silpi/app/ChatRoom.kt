@@ -6,6 +6,8 @@ data class ChatRoom(
 
         val participants: List<String> = emptyList(),
         val participantNames: Map<String, String> = emptyMap(),
+        val searchName: String = "",
+        val searchNames: Map<String, String> = emptyMap(),
 
         val lastMessage: String = "",
         val lastMessageTime: Long = 0L,

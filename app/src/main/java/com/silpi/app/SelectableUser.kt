@@ -4,5 +4,6 @@ data class SelectableUser(
         val userId: String,
         val userName: String,
         val email: String = "",
+        val profileImageData: String = "",
         var isSelected: Boolean = false
 )

@@ -9,9 +9,6 @@ import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class ChatAdapter(
         private val messageList: MutableList<ChatMessage>,
@@ -156,8 +153,7 @@ class ChatAdapter(
     }
 
     private fun formatTimestamp(timestamp: Long): String {
-        val formatter = SimpleDateFormat("a h:mm", Locale.KOREAN)
-        return formatter.format(Date(timestamp))
+        return ChatTimeHelper.formatChatTime(timestamp)
     }
 
     private fun setMessageTopMargin(itemView: View, isSameSenderAsPrevious: Boolean) {

@@ -7,6 +7,7 @@
     android:background="#E5F0EC">
 
     <LinearLayout
+        android:id="@+id/layoutChatContent"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:orientation="vertical"
@@ -33,7 +34,9 @@
                 android:contentDescription="Back"
                 android:minWidth="48dp"
                 android:minHeight="48dp"
-                android:src="@android:drawable/ic_media_previous" />
+                android:padding="6dp"
+                android:scaleType="center"
+                android:src="@drawable/ic_chat_back" />
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/imageProfile"
@@ -62,10 +65,12 @@
                 android:layout_height="40dp"
                 android:layout_marginEnd="8dp"
                 android:background="@android:color/transparent"
-                android:contentDescription="Call"
+                android:contentDescription="Search"
                 android:minWidth="48dp"
                 android:minHeight="48dp"
-                android:src="@android:drawable/ic_menu_call" />
+                android:padding="6dp"
+                android:scaleType="center"
+                android:src="@drawable/ic_chat_search" />
 
             <ImageButton
                 android:id="@+id/buttonMore"
@@ -75,7 +80,9 @@
                 android:contentDescription="More"
                 android:minWidth="48dp"
                 android:minHeight="48dp"
-                android:src="@android:drawable/ic_menu_more" />
+                android:padding="6dp"
+                android:scaleType="center"
+                android:src="@drawable/ic_chat_menu" />
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -128,5 +135,22 @@
                 android:src="@android:drawable/ic_menu_send" />
         </LinearLayout>
     </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/layoutChatMenuPanel"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#FFFFFF"
+        android:clickable="true"
+        android:elevation="12dp"
+        android:focusable="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <include layout="@layout/dialog_chat_room_menu" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
