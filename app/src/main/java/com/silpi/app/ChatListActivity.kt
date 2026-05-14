@@ -48,8 +48,6 @@ class ChatListActivity : AppCompatActivity() {
         db = FirebaseFirestore.getInstance()
         myUserId = CurrentUserProvider.userId(this)
 
-        registerTestUser()
-
         initViews()
         setupRecyclerView()
         setupClickListeners()
@@ -295,15 +293,6 @@ class ChatListActivity : AppCompatActivity() {
                     Log.e("ChatListActivity", "Chat room load failed", e)
                     Toast.makeText(this, "나가기 실패", Toast.LENGTH_SHORT).show()
                 }
-    }
-
-    private fun registerTestUser() {
-        val user = CurrentUserProvider.user(this)
-
-        FirebaseFirestore.getInstance()
-                .collection("users")
-                .document(user.userId)
-                .set(user)
     }
 
     private fun ensureSearchNames(roomId: String, chatRoom: ChatRoom) {

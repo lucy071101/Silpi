@@ -524,7 +524,6 @@ class ChatActivity : AppCompatActivity() {
         messageListener = db.collection("chats")
                 .document(chatRoomId)
                 .collection("messages")
-                .orderBy("timestamp")
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
                         Log.e("ChatActivity", "Message fetch failed", error)
@@ -535,15 +534,19 @@ class ChatActivity : AppCompatActivity() {
 
                     messageList.clear()
 
-                    for (document in snapshot.documents) {
+                    val loadedMessages = snapshot.documents.mapNotNull { document ->
                         val chatMessage = document.toObject(ChatMessage::class.java)
-                        if (chatMessage != null) {
+                        if (chatMessage == null) {
+                            null
+                        } else {
                             val displayTimestamp =
                                     ChatTimeHelper.readMillis(document, "sentAt")
                                             ?: chatMessage.timestamp
-                            messageList.add(chatMessage.copy(timestamp = displayTimestamp))
+                            chatMessage.copy(timestamp = displayTimestamp)
                         }
                     }
+
+                    messageList.addAll(loadedMessages.sortedBy { it.timestamp })
 
                     chatAdapter.notifyDataSetChanged()
                     loadMessageSenderProfiles()

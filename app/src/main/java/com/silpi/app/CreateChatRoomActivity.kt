@@ -89,7 +89,7 @@ class CreateChatRoomActivity : AppCompatActivity() {
             }
 
             if (selectedUsers.size == 1) {
-                createChatRoom(roomName = "")
+                openExistingPrivateRoomOrCreate(selectedUsers.first())
             } else {
                 showRoomNameDialog()
             }
@@ -265,6 +265,35 @@ class CreateChatRoomActivity : AppCompatActivity() {
                 }
                 .addOnFailureListener {
                     Toast.makeText(this, "생성 실패", Toast.LENGTH_SHORT).show()
+                }
+    }
+
+    private fun openExistingPrivateRoomOrCreate(otherUser: SelectableUser) {
+        db.collection("chats")
+                .whereArrayContains("participants", myUserId)
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    val existingRoom = snapshot.documents
+                            .mapNotNull { document ->
+                                val chatRoom = document.toObject(ChatRoom::class.java)
+                                chatRoom?.copy(roomId = document.id)
+                            }
+                            .firstOrNull { chatRoom ->
+                                !chatRoom.group &&
+                                        chatRoom.participants.toSet() == setOf(myUserId, otherUser.userId)
+                            }
+
+                    if (existingRoom != null) {
+                        val intent = Intent(this, ChatActivity::class.java)
+                        intent.putExtra("chatRoomId", existingRoom.roomId)
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        createChatRoom(roomName = "")
+                    }
+                }
+                .addOnFailureListener {
+                    Toast.makeText(this, "기존 채팅방 확인에 실패했습니다.", Toast.LENGTH_SHORT).show()
                 }
     }
 

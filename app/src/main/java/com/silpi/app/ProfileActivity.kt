@@ -89,7 +89,9 @@ class ProfileActivity : AppCompatActivity() {
         editTextBio.setText(CurrentUserProvider.bio(this))
 
         selectedInterests.clear()
-        selectedInterests.addAll(CurrentUserProvider.interests(this))
+        if (!isFirstSetup) {
+            selectedInterests.addAll(CurrentUserProvider.interests(this))
+        }
         updateInterestText()
 
         profileImageData = CurrentUserProvider.profileImageData(this)
@@ -160,8 +162,9 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun showInterestDialog() {
+        val tempSelectedInterests = selectedInterests.toMutableList()
         val checkedItems = interestOptions
-                .map { selectedInterests.contains(it) }
+                .map { tempSelectedInterests.contains(it) }
                 .toBooleanArray()
 
         AlertDialog.Builder(this)
@@ -169,21 +172,17 @@ class ProfileActivity : AppCompatActivity() {
                 .setMultiChoiceItems(interestOptions.toTypedArray(), checkedItems) { _, which, isChecked ->
                     val interest = interestOptions[which]
                     if (isChecked) {
-                        if (!selectedInterests.contains(interest)) {
-                            selectedInterests.add(interest)
+                        if (!tempSelectedInterests.contains(interest)) {
+                            tempSelectedInterests.add(interest)
                         }
                     } else {
-                        selectedInterests.remove(interest)
+                        tempSelectedInterests.remove(interest)
                     }
                 }
-                .setNegativeButton("취소") { _, _ ->
-                    selectedInterests.clear()
-                    selectedInterests.addAll(
-                            interestOptions.filterIndexed { index, _ -> checkedItems[index] }
-                    )
-                    updateInterestText()
-                }
+                .setNegativeButton("취소", null)
                 .setPositiveButton("확인") { _, _ ->
+                    selectedInterests.clear()
+                    selectedInterests.addAll(tempSelectedInterests)
                     updateInterestText()
                 }
                 .show()
