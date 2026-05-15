@@ -21,7 +21,9 @@ class MainActivity : AppCompatActivity() {
         db = FirebaseFirestore.getInstance()
 
         val currentUser = auth.currentUser
-        if (currentUser != null && currentUser.isEmailVerified) {
+        // TODO: 이메일 인증 기능을 다시 켤 때 isEmailVerified 조건을 복구하세요.
+        // if (currentUser != null && currentUser.isEmailVerified) {
+        if (currentUser != null) {
             loadProfileAndMove()
             return
         }
@@ -53,7 +55,9 @@ class MainActivity : AppCompatActivity() {
                             }
 
                             user.reload().addOnCompleteListener {
-                                if (user.isEmailVerified) {
+                                // TODO: 이메일 인증 기능을 다시 켤 때 user.isEmailVerified 조건을 복구하세요.
+                                // if (user.isEmailVerified) {
+                                if (true) {
                                     Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show()
                                     loadProfileAndMove()
                                 } else {
