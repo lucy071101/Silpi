@@ -1,6 +1,5 @@
 package com.silpi.app
 
-
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.content.Intent
@@ -24,7 +23,6 @@ class SignupActivity : AppCompatActivity() {
         val confirmButton = findViewById<Button>(R.id.confirmButton)
         val switchButton = findViewById<Button>(R.id.switchButton)
 
-
         // 회원가입
         confirmButton.setOnClickListener {
             val email = emailInput.text.toString().trim()
@@ -45,7 +43,12 @@ class SignupActivity : AppCompatActivity() {
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
-                        Toast.makeText(this, "회원가입 성공", Toast.LENGTH_SHORT).show()
+                        /* [임시 주석: 테스트용 계정 생성을 위해 인증 메일 발송을 끕니다]
+                        val user = auth.currentUser
+                        user?.sendEmailVerification()?.addOnCompleteListener { ... }
+                        */
+
+                        Toast.makeText(this, "회원가입 성공 (테스트 계정)", Toast.LENGTH_SHORT).show()
 
                         val intent = Intent(this, MainActivity::class.java)
                         startActivity(intent)
@@ -66,6 +69,5 @@ class SignupActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
-
     }
 }
