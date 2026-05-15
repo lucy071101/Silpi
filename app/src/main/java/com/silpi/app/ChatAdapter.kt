@@ -9,13 +9,11 @@ import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class ChatAdapter(
         private val messageList: MutableList<ChatMessage>,
-        private val myUserId: String
+        private val myUserId: String,
+        private val profileImagesByUserId: Map<String, String>
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var lastAnimatedPosition = -1
@@ -26,6 +24,7 @@ class ChatAdapter(
     }
 
     class LeftViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val imageViewSenderProfile: ImageView = itemView.findViewById(R.id.imageViewSenderProfile)
         val textViewSenderNameLeft: TextView = itemView.findViewById(R.id.textViewSenderNameLeft)
         val textViewMessageLeft: TextView = itemView.findViewById(R.id.textViewMessageLeft)
         val imageViewMessageLeft: ImageView = itemView.findViewById(R.id.imageViewMessageLeft)
@@ -88,6 +87,11 @@ class ChatAdapter(
             }
 
         } else if (holder is LeftViewHolder) {
+            ProfileImageHelper.setProfileImage(
+                    holder.imageViewSenderProfile,
+                    profileImagesByUserId[chatMessage.senderId].orEmpty()
+            )
+
             bindMessageContent(
                     textView = holder.textViewMessageLeft,
                     imageView = holder.imageViewMessageLeft,
@@ -149,8 +153,7 @@ class ChatAdapter(
     }
 
     private fun formatTimestamp(timestamp: Long): String {
-        val formatter = SimpleDateFormat("a h:mm", Locale.KOREAN)
-        return formatter.format(Date(timestamp))
+        return ChatTimeHelper.formatChatTime(timestamp)
     }
 
     private fun setMessageTopMargin(itemView: View, isSameSenderAsPrevious: Boolean) {

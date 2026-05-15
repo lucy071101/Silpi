@@ -1,11 +1,11 @@
 package com.silpi.app
 
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
 import android.content.Intent
+import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 
 class SignupActivity : AppCompatActivity() {
@@ -60,7 +60,6 @@ class SignupActivity : AppCompatActivity() {
                             Toast.LENGTH_LONG
                         ).show()
                     }
-                }
         }
 
         // 로그인 화면으로 이동

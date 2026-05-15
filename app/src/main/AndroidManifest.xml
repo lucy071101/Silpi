@@ -30,6 +30,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".ProfileActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ChatActivity"
             android:exported="false" />
 

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="82dp"
+    android:layout_height="98dp"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingEnd="8dp"
+    android:paddingBottom="2dp">
+
+    <FrameLayout
+        android:layout_width="64dp"
+        android:layout_height="64dp">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/imageViewSelectedProfile"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="bottom|start"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlaySilpiCircleImage" />
+
+        <ImageButton
+            android:id="@+id/buttonRemoveSelectedUser"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_gravity="top|end"
+            android:background="@drawable/bg_selected_user_remove"
+            android:contentDescription="선택 해제"
+            android:padding="5dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            app:tint="#FFFFFF" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/textViewSelectedUserName"
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:layout_marginTop="6dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:text="사용자"
+        android:textColor="#222222"
+        android:textSize="13sp" />
+</LinearLayout>

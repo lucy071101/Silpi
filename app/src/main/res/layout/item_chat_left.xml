@@ -2,50 +2,66 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     android:gravity="start"
+    android:orientation="horizontal"
     android:padding="4dp">
 
-    <!-- 보낸 사람 이름 -->
-    <TextView
-        android:id="@+id/textViewSenderNameLeft"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="6dp"
-        android:layout_marginBottom="2dp"
-        android:text="민수"
-        android:textSize="12sp"
-        android:textColor="#888888" />
-
-    <!-- 메시지 -->
-    <TextView
-        android:id="@+id/textViewMessageLeft"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_chat_left"
-        android:maxWidth="250dp"
-        android:padding="12dp"
-        android:text="상대 메시지"
-        android:textSize="16sp" />
-
     <ImageView
-        android:id="@+id/imageViewMessageLeft"
-        android:layout_width="220dp"
-        android:layout_height="220dp"
-        android:background="@drawable/bg_chat_left"
-        android:contentDescription="이미지 메시지"
-        android:padding="4dp"
+        android:id="@+id/imageViewSenderProfile"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="2dp"
+        android:background="@drawable/bg_profile_circle"
+        android:clipToOutline="true"
+        android:contentDescription="보낸 사람 프로필"
         android:scaleType="centerCrop"
-        android:visibility="gone" />
+        android:src="@drawable/padang" />
 
-    <!-- 시간 -->
-    <TextView
-        android:id="@+id/textViewTimeLeft"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="오후 2:15"
-        android:textColor="#888888"
-        android:textSize="12sp" />
+        android:layout_marginStart="8dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
+        <TextView
+            android:id="@+id/textViewSenderNameLeft"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="2dp"
+            android:layout_marginBottom="2dp"
+            android:text="민수"
+            android:textColor="#888888"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/textViewMessageLeft"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_chat_left"
+            android:maxWidth="250dp"
+            android:padding="12dp"
+            android:text="안녕!"
+            android:textSize="16sp" />
+
+        <ImageView
+            android:id="@+id/imageViewMessageLeft"
+            android:layout_width="220dp"
+            android:layout_height="220dp"
+            android:background="@drawable/bg_chat_left"
+            android:contentDescription="이미지 메시지"
+            android:padding="4dp"
+            android:scaleType="centerCrop"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/textViewTimeLeft"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="오후 2:15"
+            android:textColor="#888888"
+            android:textSize="12sp" />
+    </LinearLayout>
 </LinearLayout>
