@@ -20,9 +20,12 @@ class MainActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
+        // 1. 자동 로그인 체크 (임시: 인증 여부 상관없이 로그인되어 있으면 통과)
         val currentUser = auth.currentUser
-        if (currentUser != null && currentUser.isEmailVerified) {
-            loadProfileAndMove()
+        // if (currentUser != null && currentUser.isEmailVerified) { // <-- 기존 로직 주석
+        if (currentUser != null) { // <-- 임시 로직
+            startActivity(Intent(this, HomeActivity::class.java))
+            finish()
             return
         }
 
@@ -44,12 +47,20 @@ class MainActivity : AppCompatActivity() {
             }
 
             auth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(this) { task ->
-                        if (task.isSuccessful) {
-                            val user = auth.currentUser
-                            if (user == null) {
-                                Toast.makeText(this, "로그인 정보를 확인할 수 없습니다.", Toast.LENGTH_SHORT).show()
-                                return@addOnCompleteListener
+                .addOnCompleteListener(this) { task ->
+                    if (task.isSuccessful) {
+                        /* [임시 주석: 테스트를 위해 이메일 인증 확인 절차를 끕니다]
+                        val user = auth.currentUser
+                        user?.reload()?.addOnCompleteListener { _ ->
+                            if (user != null && user.isEmailVerified) {
+                        */
+                        Toast.makeText(this, "로그인 성공 (테스트 모드)", Toast.LENGTH_SHORT).show()
+                        startActivity(Intent(this, HomeActivity::class.java))
+                        finish()
+                        /*
+                            } else {
+                                auth.signOut()
+                                Toast.makeText(this, "이메일 인증이 필요합니다.", Toast.LENGTH_LONG).show()
                             }
 
                             user.reload().addOnCompleteListener {
@@ -64,6 +75,9 @@ class MainActivity : AppCompatActivity() {
                         } else {
                             Toast.makeText(this, "이메일 또는 비밀번호 오류", Toast.LENGTH_SHORT).show()
                         }
+                        */
+                    } else {
+                        Toast.makeText(this, "이메일 또는 비밀번호 오류", Toast.LENGTH_SHORT).show()
                     }
         }
 
