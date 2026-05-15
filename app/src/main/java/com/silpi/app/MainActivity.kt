@@ -20,12 +20,11 @@ class MainActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        // 1. 자동 로그인 체크 (임시: 인증 여부 상관없이 로그인되어 있으면 통과)
         val currentUser = auth.currentUser
-        // if (currentUser != null && currentUser.isEmailVerified) { // <-- 기존 로직 주석
-        if (currentUser != null) { // <-- 임시 로직
-            startActivity(Intent(this, HomeActivity::class.java))
-            finish()
+        // TODO: 이메일 인증 기능을 다시 켤 때 isEmailVerified 조건을 복구하세요.
+        // if (currentUser != null && currentUser.isEmailVerified) {
+        if (currentUser != null) {
+            loadProfileAndMove()
             return
         }
 
@@ -47,24 +46,18 @@ class MainActivity : AppCompatActivity() {
             }
 
             auth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this) { task ->
-                    if (task.isSuccessful) {
-                        /* [임시 주석: 테스트를 위해 이메일 인증 확인 절차를 끕니다]
-                        val user = auth.currentUser
-                        user?.reload()?.addOnCompleteListener { _ ->
-                            if (user != null && user.isEmailVerified) {
-                        */
-                        Toast.makeText(this, "로그인 성공 (테스트 모드)", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this, HomeActivity::class.java))
-                        finish()
-                        /*
-                            } else {
-                                auth.signOut()
-                                Toast.makeText(this, "이메일 인증이 필요합니다.", Toast.LENGTH_LONG).show()
+                    .addOnCompleteListener(this) { task ->
+                        if (task.isSuccessful) {
+                            val user = auth.currentUser
+                            if (user == null) {
+                                Toast.makeText(this, "로그인 정보를 확인할 수 없습니다.", Toast.LENGTH_SHORT).show()
+                                return@addOnCompleteListener
                             }
 
                             user.reload().addOnCompleteListener {
-                                if (user.isEmailVerified) {
+                                // TODO: 이메일 인증 기능을 다시 켤 때 user.isEmailVerified 조건을 복구하세요.
+                                // if (user.isEmailVerified) {
+                                if (true) {
                                     Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show()
                                     loadProfileAndMove()
                                 } else {
@@ -75,9 +68,6 @@ class MainActivity : AppCompatActivity() {
                         } else {
                             Toast.makeText(this, "이메일 또는 비밀번호 오류", Toast.LENGTH_SHORT).show()
                         }
-                        */
-                    } else {
-                        Toast.makeText(this, "이메일 또는 비밀번호 오류", Toast.LENGTH_SHORT).show()
                     }
         }
 
