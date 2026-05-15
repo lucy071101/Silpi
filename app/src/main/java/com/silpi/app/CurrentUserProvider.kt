@@ -18,7 +18,7 @@ object CurrentUserProvider {
         val authUser = FirebaseAuth.getInstance().currentUser
         if (authUser != null) return authUser.uid
 
-        return prefs(context).getString(KEY_USER_ID, null) ?: TestUser.USER_ID
+        return prefs(context).getString(KEY_USER_ID, null) ?: ""
     }
 
     fun userName(context: Context): String {
@@ -27,10 +27,10 @@ object CurrentUserProvider {
             return prefs(context).getString(KEY_USER_NAME, null)
                     ?: authUser.displayName
                     ?: authUser.email
-                    ?: TestUser.USER_NAME
+                    ?: ""
         }
 
-        return prefs(context).getString(KEY_USER_NAME, null) ?: TestUser.USER_NAME
+        return prefs(context).getString(KEY_USER_NAME, null) ?: ""
     }
 
     fun email(context: Context): String {

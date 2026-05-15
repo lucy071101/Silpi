@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 
@@ -99,7 +100,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
-        if (isFirstSetup || profileLoadFailed) {
+        if (profileLoadFailed) {
             buttonBack.visibility = View.INVISIBLE
         }
 
@@ -108,6 +109,11 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         buttonBack.setOnClickListener {
+            if (isFirstSetup) {
+                signOutAndMoveToLogin()
+                return@setOnClickListener
+            }
+
             finish()
         }
 
@@ -246,6 +252,25 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun moveToHome() {
         val intent = Intent(this, HomeActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+        finish()
+    }
+
+    override fun onBackPressed() {
+        if (isFirstSetup) {
+            signOutAndMoveToLogin()
+            return
+        }
+
+        super.onBackPressed()
+    }
+
+    private fun signOutAndMoveToLogin() {
+        FirebaseAuth.getInstance().signOut()
+        CurrentUserProvider.clear(this)
+
+        val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
         finish()
