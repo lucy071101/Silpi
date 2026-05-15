@@ -20,25 +20,21 @@ class SignupActivity : AppCompatActivity() {
 
         val emailInput = findViewById<EditText>(R.id.emailInput)
         val passwordInput = findViewById<EditText>(R.id.passwordInput)
-        val passwordConfirmInput = findViewById<EditText>(R.id.passwordConfirmInput)
         val confirmButton = findViewById<Button>(R.id.confirmButton)
         val switchButton = findViewById<Button>(R.id.switchButton)
 
+        // 회원가입
         confirmButton.setOnClickListener {
             val email = emailInput.text.toString().trim()
             val password = passwordInput.text.toString().trim()
-            val passwordConfirm = passwordConfirmInput.text.toString().trim()
 
-            if (email.isEmpty() || password.isEmpty() || passwordConfirm.isEmpty()) {
-                Toast.makeText(this, "모든 항목을 입력해주세요", Toast.LENGTH_SHORT).show()
+            // 입력값 공백 체크
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "이메일과 비밀번호를 입력하세요", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            if (password != passwordConfirm) {
-                Toast.makeText(this, "비밀번호가 일치하지 않습니다.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
+            // 비밀번호 길이 체크
             if (password.length < 6) {
                 Toast.makeText(this, "비밀번호는 6자 이상이어야 합니다", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -47,22 +43,30 @@ class SignupActivity : AppCompatActivity() {
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
+                        /* [임시 주석: 테스트용 계정 생성을 위해 인증 메일 발송을 끕니다]
                         val user = auth.currentUser
-                        user?.sendEmailVerification()?.addOnCompleteListener { verificationTask ->
-                            if (verificationTask.isSuccessful) {
-                                Toast.makeText(this, "가입 성공! 이메일 인증 링크를 확인해주세요.", Toast.LENGTH_LONG).show()
-                                startActivity(Intent(this, MainActivity::class.java))
-                                finish()
-                            }
-                        }
+                        user?.sendEmailVerification()?.addOnCompleteListener { ... }
+                        */
+
+                        Toast.makeText(this, "회원가입 성공 (테스트 계정)", Toast.LENGTH_SHORT).show()
+
+                        val intent = Intent(this, MainActivity::class.java)
+                        startActivity(intent)
+                        finish()
                     } else {
-                        Toast.makeText(this, "회원가입 실패: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            this,
+                            "회원가입 실패: ${task.exception?.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 }
         }
 
+        // 로그인 화면으로 이동
         switchButton.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
             finish()
         }
     }
