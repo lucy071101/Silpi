@@ -37,7 +37,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         String content = doc.getString("content");
         Long recommendCount = doc.getLong("recommendCount");
 
-        // 🌟 여기가 핵심입니다! (에러 해결)
+        // 🌟 [추가] 파이어스토어 문서에서 실제 저장된 댓글 개수(commentCount)를 꺼내옵니다!
+        Long commentCount = doc.getLong("commentCount");
+
         // 숫자로 된 가짜 글과 Timestamp로 된 진짜 글을 모두 안전하게 가져오는 마법의 코드
         Long finalTime = 0L;
         Object timestampObj = doc.get("timestamp");
@@ -58,6 +60,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         holder.tvTime.setText(formatTimeString(finalTime));
 
         holder.tvRecommend.setText("👍 " + (recommendCount != null ? recommendCount : 0));
+
+        // 🌟 [핵심 변경] 더미 데이터 "5" 대신, 파이어베이스에서 가져온 진짜 댓글 개수를 넣어줍니다!
+        // 만약 데이터가 비어있으면(null) 안전하게 0개로 표시합니다.
+        holder.tvComment.setText("💬 " + (commentCount != null ? commentCount : 0));
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), PostDetailActivity.class);
@@ -84,7 +90,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             tvComment = itemView.findViewById(R.id.tv_item_post_comment);
         }
     }
-    // 🌟 방금 전, 몇 분 전 등 시간을 예쁘게 계산해 주는 마법의 도구
+
+    // 방금 전, 몇 분 전 등 시간을 예쁘게 계산해 주는 마법의 도구
     private String formatTimeString(Long timestamp) {
         if (timestamp == null) return "알 수 없음";
 

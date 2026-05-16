@@ -14,7 +14,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,6 +39,9 @@ public class PostWriteActivity extends AppCompatActivity {
 
     private Uri selectedImageUri;
 
+    // 🌟 1. 이 글이 어떤 카테고리에 속하는지 저장할 변수 (기본값은 "일반")
+    private String category = "일반";
+
     private final ActivityResultLauncher<Intent> pickImageLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -55,6 +57,11 @@ public class PostWriteActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_post_write);
+
+        // 🌟 2. 이전 화면(게시판 목록)에서 넘겨준 카테고리 이름("바둑", "등산" 등)을 받습니다.
+        if (getIntent().hasExtra("category")) {
+            category = getIntent().getStringExtra("category");
+        }
 
         initViews();
         setClickListeners();
@@ -115,8 +122,12 @@ public class PostWriteActivity extends AppCompatActivity {
         Map<String, Object> post = new HashMap<>();
         post.put("title", title);
         post.put("content", content);
-        post.put("imageUrl", imageUrl); // 이미지 주소 추가
+        post.put("imageUrl", imageUrl);
         post.put("isAnonymous", isAnonymous);
+
+        // 🌟 3. 파이어스토어 데이터 바구니에 카테고리 정보도 쏙 넣어줍니다!
+        post.put("category", category);
+
         post.put("recommendCount", 0);
         post.put("commentCount", 0);
         post.put("timestamp", com.google.firebase.firestore.FieldValue.serverTimestamp());
@@ -146,7 +157,6 @@ public class PostWriteActivity extends AppCompatActivity {
                     btnComplete.setTextColor(Color.WHITE);
                 } else {
                     btnComplete.setEnabled(false);
-                    // ContextCompat을 사용하여 안전하게 색상을 가져옵니다.
                     btnComplete.setTextColor(ContextCompat.getColor(PostWriteActivity.this, R.color.silphy_divider));
                 }
             }

@@ -29,27 +29,24 @@ public class PostDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_post_detail);
-        // 🌟 뒤로 가기 버튼 누르면 상세 화면 닫기!
+
         android.widget.ImageView btnDetailBack = findViewById(R.id.btn_detail_back);
         if (btnDetailBack != null) {
             btnDetailBack.setOnClickListener(v -> finish());
         }
-        // 이전 화면(목록)에서 클릭한 게시물의 ID를 받아옵니다.
+
         postId = getIntent().getStringExtra("postId");
 
         initViews();
 
-        // 🌟 추가된 부분: 어댑터를 연결하고 댓글을 보여줄 준비를 합니다.
         commentAdapter = new CommentAdapter();
         rvComments.setAdapter(commentAdapter);
 
-        // postId가 잘 넘어왔을 때만 데이터를 불러옵니다 (에러 방지)
         if (postId != null) {
-            loadPostDetail(); // 게시글 본문 불러오기
-            loadComments();   // 🌟 추가된 부분: 댓글 리스트 불러오기
+            loadPostDetail();
+            loadComments();
         }
 
-        // 공감(추천) 버튼 클릭 시
         btnRecommend.setOnClickListener(v -> {
             if (postId != null) {
                 db.collection("posts").document(postId)
@@ -57,7 +54,6 @@ public class PostDetailActivity extends AppCompatActivity {
             }
         });
 
-        // 댓글 전송 버튼 클릭 시
         btnSend.setOnClickListener(v -> {
             String text = etComment.getText().toString().trim();
             if (!text.isEmpty()) {
@@ -74,13 +70,11 @@ public class PostDetailActivity extends AppCompatActivity {
         etComment = findViewById(R.id.et_comment);
         btnSend = findViewById(R.id.btn_comment_send);
 
-        // 🌟 추가된 부분: RecyclerView(댓글 리스트)를 화면과 연결합니다.
         rvComments = findViewById(R.id.rv_comments);
         rvComments.setLayoutManager(new LinearLayoutManager(this));
     }
 
     private void loadPostDetail() {
-        // 실시간 업데이트(SnapshotListener)를 사용하여 추천수가 바로 바뀌게 합니다.
         db.collection("posts").document(postId)
                 .addSnapshotListener((snapshot, e) -> {
                     if (snapshot != null && snapshot.exists()) {
@@ -92,6 +86,7 @@ public class PostDetailActivity extends AppCompatActivity {
                 });
     }
 
+    // 🌟 이 메서드 내부가 업데이트되었습니다!
     private void saveComment(String text) {
         if (postId == null) return;
 
@@ -103,12 +98,23 @@ public class PostDetailActivity extends AppCompatActivity {
         // 'posts' 문서 안의 'comments'라는 하위 컬렉션에 저장합니다.
         db.collection("posts").document(postId).collection("comments").add(comment)
                 .addOnSuccessListener(doc -> {
-                    etComment.setText("");
-                    Toast.makeText(this, "댓글이 등록되었습니다.", Toast.LENGTH_SHORT).show();
+
+                    // 🌟 [핵심 추가] 댓글 저장 성공 시, 부모 게시글의 commentCount를 안전하게 1 증가시킵니다.
+                    db.collection("posts").document(postId)
+                            .update("commentCount", FieldValue.increment(1))
+                            .addOnSuccessListener(aVoid -> {
+                                // 카운트까지 성공적으로 올라가면 입력창을 비우고 토스트를 띄웁니다.
+                                etComment.setText("");
+                                Toast.makeText(this, "댓글이 등록되었습니다.", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                // 혹시나 카운트 올리기가 실패하더라도 댓글은 써졌으므로 입력창은 비워줍니다.
+                                etComment.setText("");
+                            });
+
                 });
     }
 
-    // 🌟 추가된 부분: 파이어베이스에서 댓글을 시간순으로 불러오는 메서드입니다.
     private void loadComments() {
         db.collection("posts").document(postId).collection("comments")
                 .orderBy("timestamp", Query.Direction.ASCENDING)

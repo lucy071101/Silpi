@@ -21,6 +21,9 @@ public class PostListActivity extends AppCompatActivity {
     private PostAdapter postAdapter;
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+    // 🌟 1. 현재 내가 들어와 있는 카테고리 이름을 기억할 저장소 (기본값 "바둑")
+    private String currentCategory = "바둑";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,16 +31,19 @@ public class PostListActivity extends AppCompatActivity {
 
         initViews();
         setupRecyclerView();
-        setupBottomNavigation();
 
-        // 🌟 1. 어떤 게시판(카테고리)인지 먼저 확인합니다.
+        // 🌟 2. 이전 화면에서 어떤 게시판을 눌렀는지 확인하고 전역 변수에 저장합니다.
         String communityName = getIntent().getStringExtra("communityName");
         if (communityName != null) {
-            tvBoardTitle.setText(communityName + " 게시판");
+            currentCategory = communityName;
+            tvBoardTitle.setText(currentCategory + " 게시판");
         }
 
-        // 🌟 2. 파이어베이스를 부를 때 "이 카테고리만 줘!" 라고 알려줍니다.
-        loadPosts(communityName);
+        // 하단 바 네비게이션 세팅 (currentCategory를 사용하기 위해 아래로 이동시켰습니다)
+        setupBottomNavigation();
+
+        // 파이어베이스에서 이 카테고리의 글들만 쏙쏙 골라옵니다.
+        loadPosts(currentCategory);
     }
 
     private void initViews() {
@@ -60,17 +66,14 @@ public class PostListActivity extends AppCompatActivity {
         rvPostList.setAdapter(postAdapter);
     }
 
-    // 🌟 3. 넘어온 카테고리 이름(categoryName)을 받아서 필터링합니다.
     private void loadPosts(String categoryName) {
-        if (categoryName == null) categoryName = "바둑"; // 안전장치
-
         db.collection("posts")
-                .whereEqualTo("category", categoryName) // 🌟 핵심! 이름표가 똑같은 글만 골라와라!
-                .orderBy("timestamp", Query.Direction.DESCENDING) // 다시 최신순 정렬 켭니다!
+                .whereEqualTo("category", categoryName)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error != null) {
                         Log.e("FirebaseError", "에러 발생: " + error.getMessage());
-                        Toast.makeText(this, "🚨DB 에러 (Logcat 확인 요망): " + error.getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "🚨DB 에러: " + error.getMessage(), Toast.LENGTH_LONG).show();
                         return;
                     }
                     if (value != null) {
@@ -85,7 +88,9 @@ public class PostListActivity extends AppCompatActivity {
         btnNavChat.setOnClickListener(v -> Toast.makeText(this, "채팅방으로 이동 (다른 팀원 파트)", Toast.LENGTH_SHORT).show());
 
         btnNavWrite.setOnClickListener(v -> {
+            // 🌟 3. 글쓰기 화면을 켤 때, "지금 무슨 게시판인지" 카테고리 정보를 짐 가방에 싸서 보냅니다!
             Intent intent = new Intent(PostListActivity.this, PostWriteActivity.class);
+            intent.putExtra("category", currentCategory);
             startActivity(intent);
         });
     }
