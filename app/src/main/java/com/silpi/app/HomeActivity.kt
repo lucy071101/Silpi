@@ -23,6 +23,9 @@ class HomeActivity : AppCompatActivity() {
         val mapButton = findViewById<Button>(R.id.mapButton)
         val mypageButton = findViewById<Button>(R.id.mypageButton)
 
+
+        val postButton = findViewById<Button>(R.id.postButton)
+
         chatButton.setOnClickListener {
             startActivity(Intent(this, ChatListActivity::class.java))
         }
@@ -41,6 +44,10 @@ class HomeActivity : AppCompatActivity() {
 
         mypageButton.setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
+        }
+
+        postButton.setOnClickListener {
+            startActivity(Intent(this, CommunityListActivity::class.java))
         }
 
         logoutButton.setOnClickListener {

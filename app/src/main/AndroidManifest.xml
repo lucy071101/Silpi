@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <application
         android:allowBackup="true"
@@ -13,61 +15,34 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SilpiApp"
-
         tools:targetApi="31">
-
-
-        <activity
-            android:name=".SignupActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".HomeActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".ChatListActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".ProfileActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".ChatActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".CreateChatRoomActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".MeetingCreateActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".MeetingJoinActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".MeetingDetailActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".MapActivity"
-            android:exported="false" />
 
         <activity
             android:name=".MainActivity"
             android:exported="true">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
+        <activity android:name=".SignupActivity" android:exported="false" />
+        <activity android:name=".HomeActivity" android:exported="false" />
+        <activity android:name=".ChatListActivity" android:exported="false" />
+        <activity android:name=".ProfileActivity" android:exported="false" />
+        <activity android:name=".ChatActivity" android:exported="false" />
+        <activity android:name=".CreateChatRoomActivity" android:exported="false" />
+        <activity android:name=".MeetingCreateActivity" android:exported="false" />
+        <activity android:name=".MeetingJoinActivity" android:exported="false" />
+        <activity android:name=".MeetingDetailActivity" android:exported="false" />
+        <activity android:name=".MapActivity" android:exported="false" />
+
+        <activity android:name=".PostListActivity" android:exported="false" />
+        <activity android:name=".CommunityListActivity" android:exported="false" />
+        <activity android:name=".PostDetailActivity" android:exported="false" />
+        <activity
+            android:name=".PostWriteActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
 
     </application>
 </manifest>
