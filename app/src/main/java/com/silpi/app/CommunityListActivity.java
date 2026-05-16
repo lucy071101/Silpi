@@ -59,6 +59,15 @@ public class CommunityListActivity extends AppCompatActivity {
         btnHike.setOnClickListener(v -> moveToCommunityDetail("등산"));
         btnWalk.setOnClickListener(v -> moveToCommunityDetail("산책"));
         btnFish.setOnClickListener(v -> moveToCommunityDetail("낚시"));
+
+        // 검색 버튼 리스너를 메서드 내부 하단에 올바르게 추가합니다.
+        btnSearch.setOnClickListener(v -> {
+            String searchQuery = etSearch.getText().toString().trim();
+            if (!searchQuery.isEmpty()) {
+                // 검색 로직 수행 또는 검색 결과를 보여주는 액티비티로 이동
+                Toast.makeText(CommunityListActivity.this, searchQuery + " 검색", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     // 🌟 화면을 게시판으로 실제로 넘겨주는 마법의 문구!
@@ -73,6 +82,12 @@ public class CommunityListActivity extends AppCompatActivity {
                 .orderBy("memberCount", Query.Direction.DESCENDING)
                 .limit(10)
                 .addSnapshotListener((value, error) -> {
+                    // 에러가 발생했는지 먼저 확인하는 방어 코드를 추가합니다.
+                    if (error != null) {
+                        android.util.Log.e("CommunityListActivity", "데이터 로드 실패: ", error);
+                        return; // 에러가 있다면 아래 코드를 실행하지 않고 리스너를 빠져나갑니다.
+                    }
+
                     if (value != null) {
                         communityAdapter.setCommunities(value.getDocuments());
                     }
