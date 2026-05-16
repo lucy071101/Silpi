@@ -33,7 +33,7 @@
             android:name=".PostDetailActivity"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".PostWriteActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
     </application>

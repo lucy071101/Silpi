@@ -85,7 +85,7 @@ public class PostListActivity extends AppCompatActivity {
         btnNavChat.setOnClickListener(v -> Toast.makeText(this, "채팅방으로 이동 (다른 팀원 파트)", Toast.LENGTH_SHORT).show());
 
         btnNavWrite.setOnClickListener(v -> {
-            Intent intent = new Intent(PostListActivity.this, MainActivity.class);
+            Intent intent = new Intent(PostListActivity.this, PostWriteActivity.class);
             startActivity(intent);
         });
     }

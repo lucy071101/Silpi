@@ -4,12 +4,12 @@
 //
 // For instance,
 //
-// In MainActivity.java:
+// In PostWriteActivity.java:
 //    static {
 //       System.loadLibrary("app");
 //    }
 //
-// Or, in MainActivity.kt:
+// Or, in PostWriteActivity.kt:
 //    companion object {
 //      init {
 //         System.loadLibrary("app")

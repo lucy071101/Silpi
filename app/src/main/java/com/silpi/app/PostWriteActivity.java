@@ -27,7 +27,7 @@ import com.google.firebase.storage.StorageReference;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
+public class PostWriteActivity extends AppCompatActivity {
 
     // 파이어베이스 도구 초기화
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     btnComplete.setEnabled(false);
                     // ContextCompat을 사용하여 안전하게 색상을 가져옵니다.
-                    btnComplete.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.silphy_divider));
+                    btnComplete.setTextColor(ContextCompat.getColor(PostWriteActivity.this, R.color.silphy_divider));
                 }
             }
             @Override
