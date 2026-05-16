@@ -1,136 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:orientation="vertical"
+android:gravity="center"
+android:padding="24dp">
+
+<TextView
+    android:id="@+id/titleText"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Login"
+    android:textSize="28sp" />
+
+<EditText
+    android:id="@+id/emailInput"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/silphy_bg_light">
+    android:layout_height="wrap_content"
+    android:hint="Email" />
 
-    <RelativeLayout
-        android:id="@+id/layout_top_bar"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:background="@color/silphy_primary"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="15dp">
+<EditText
+    android:id="@+id/passwordInput"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:hint="Password" />
 
-        <ImageView
-            android:id="@+id/btn_cancel"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_alignParentStart="true"
-            android:contentDescription="취소"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            app:tint="#FFFFFF" /> <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="글 쓰기"
-        android:textColor="#FFFFFF"
-        android:textSize="22sp"
-        android:textStyle="bold" />
+<Button
+    android:id="@+id/confirmButton"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="Login" />
 
-        <TextView
-            android:id="@+id/btn_complete"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:enabled="false"
-            android:text="완료"
-            android:textColor="#CCCCCC"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-    </RelativeLayout>
+<Button
+    android:id="@+id/switchButton"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Don't have an account? Sign up" />
 
-    <LinearLayout
-        android:id="@+id/layout_bottom_bar"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_alignParentBottom="true"
-        android:background="@color/silphy_bg_light"
-        android:elevation="4dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="20dp">
+<Button
+    android:id="@+id/recoveryButton"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Forgot Password?"
+    android:layout_marginTop="12dp" />
 
-        <ImageView
-            android:id="@+id/btn_photo"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
-            android:contentDescription="사진 첨부"
-            android:src="@android:drawable/ic_menu_camera"
-            app:tint="@color/silphy_primary" />
-
-        <View
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
-
-        <CheckBox
-            android:id="@+id/cb_anonymous"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:buttonTint="@color/silphy_primary"
-            android:checked="true"
-            android:text="익명"
-            android:textColor="@color/silphy_text_main"
-            android:textSize="18sp" />
-
-    </LinearLayout>
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/layout_bottom_bar"
-        android:layout_below="@+id/layout_top_bar">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingHorizontal="20dp">
-
-            <EditText
-                android:id="@+id/et_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:background="@android:color/transparent"
-                android:hint="제목을 입력해주세요."
-                android:inputType="text"
-                android:singleLine="true"
-                android:textColor="@color/silphy_text_main"
-                android:textColorHint="@color/silphy_text_hint"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="15dp"
-                android:background="@color/silphy_divider" />
-
-            <EditText
-                android:id="@+id/et_content"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="15dp"
-                android:background="@android:color/transparent"
-                android:gravity="top"
-                android:hint="동네 친구들과 자유롭게 얘기해보세요.\n(예: 바둑 두실 분?)"
-                android:minLines="10"
-                android:textColor="@color/silphy_text_main"
-                android:textColorHint="@color/silphy_text_hint"
-                android:textSize="20sp" />
-            <ImageView
-                android:id="@+id/iv_preview"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_marginTop="10dp"
-                android:scaleType="centerCrop"
-                android:visibility="gone"
-                android:background="@color/silphy_divider" />
-
-        </LinearLayout>
-    </ScrollView>
-
-</RelativeLayout>
+</LinearLayout>

@@ -1,9 +1,14 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.Silpi" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+<resources xmlns:tools="http://schemas.github.com/tools">
+    <style name="Base.Theme.Silpi" parent="Theme.Material3.DayNight.NoActionBar" />
+
+    <style name="Base.Theme.SilpiApp" parent="Theme.Material3.DayNight.NoActionBar">
     </style>
 
     <style name="Theme.Silpi" parent="Base.Theme.Silpi" />
+    <style name="Theme.SilpiApp" parent="Base.Theme.SilpiApp" />
+
+    <style name="ShapeAppearanceOverlaySilpiCircleImage">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
 </resources>

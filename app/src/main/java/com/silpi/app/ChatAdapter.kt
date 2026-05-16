@@ -1,0 +1,173 @@
+package com.silpi.app
+
+import android.graphics.BitmapFactory
+import android.util.Base64
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.animation.AnimationUtils
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+
+class ChatAdapter(
+        private val messageList: MutableList<ChatMessage>,
+        private val myUserId: String,
+        private val profileImagesByUserId: Map<String, String>
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+    private var lastAnimatedPosition = -1
+
+    companion object {
+        private const val VIEW_TYPE_LEFT = 0
+        private const val VIEW_TYPE_RIGHT = 1
+    }
+
+    class LeftViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val imageViewSenderProfile: ImageView = itemView.findViewById(R.id.imageViewSenderProfile)
+        val textViewSenderNameLeft: TextView = itemView.findViewById(R.id.textViewSenderNameLeft)
+        val textViewMessageLeft: TextView = itemView.findViewById(R.id.textViewMessageLeft)
+        val imageViewMessageLeft: ImageView = itemView.findViewById(R.id.imageViewMessageLeft)
+        val textViewTimeLeft: TextView = itemView.findViewById(R.id.textViewTimeLeft)
+    }
+
+    class RightViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val textViewMessageRight: TextView = itemView.findViewById(R.id.textViewMessageRight)
+        val imageViewMessageRight: ImageView = itemView.findViewById(R.id.imageViewMessageRight)
+        val textViewTimeRight: TextView = itemView.findViewById(R.id.textViewTimeRight)
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return if (messageList[position].senderId == myUserId) {
+            VIEW_TYPE_RIGHT
+        } else {
+            VIEW_TYPE_LEFT
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return if (viewType == VIEW_TYPE_RIGHT) {
+            val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_chat_right, parent, false)
+            RightViewHolder(view)
+        } else {
+            val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_chat_left, parent, false)
+            LeftViewHolder(view)
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val currentPosition = holder.bindingAdapterPosition
+        if (currentPosition == RecyclerView.NO_POSITION) return
+
+        val chatMessage = messageList[currentPosition]
+        val formattedTime = formatTimestamp(chatMessage.timestamp)
+
+        val isSameSenderAsPrevious =
+                currentPosition > 0 &&
+                        messageList[currentPosition - 1].senderId == chatMessage.senderId
+
+        val shouldShowTime =
+                currentPosition == messageList.lastIndex ||
+                        messageList[currentPosition + 1].senderId != chatMessage.senderId
+
+        if (holder is RightViewHolder) {
+            bindMessageContent(
+                    textView = holder.textViewMessageRight,
+                    imageView = holder.imageViewMessageRight,
+                    chatMessage = chatMessage
+            )
+
+            if (shouldShowTime) {
+                holder.textViewTimeRight.visibility = View.VISIBLE
+                holder.textViewTimeRight.text = formattedTime
+            } else {
+                holder.textViewTimeRight.visibility = View.GONE
+            }
+
+        } else if (holder is LeftViewHolder) {
+            ProfileImageHelper.setProfileImage(
+                    holder.imageViewSenderProfile,
+                    profileImagesByUserId[chatMessage.senderId].orEmpty()
+            )
+
+            bindMessageContent(
+                    textView = holder.textViewMessageLeft,
+                    imageView = holder.imageViewMessageLeft,
+                    chatMessage = chatMessage
+            )
+
+            val shouldShowSenderName =
+                    currentPosition == 0 ||
+                            messageList[currentPosition - 1].senderId != chatMessage.senderId
+
+            if (shouldShowSenderName) {
+                holder.textViewSenderNameLeft.visibility = View.VISIBLE
+                holder.textViewSenderNameLeft.text = chatMessage.senderName
+            } else {
+                holder.textViewSenderNameLeft.visibility = View.GONE
+            }
+
+            if (shouldShowTime) {
+                holder.textViewTimeLeft.visibility = View.VISIBLE
+                holder.textViewTimeLeft.text = formattedTime
+            } else {
+                holder.textViewTimeLeft.visibility = View.GONE
+            }
+        }
+
+        setMessageTopMargin(holder.itemView, isSameSenderAsPrevious)
+
+        if (currentPosition > lastAnimatedPosition) {
+            val animation = AnimationUtils.loadAnimation(
+                    holder.itemView.context,
+                    R.anim.item_slide_in
+            )
+            holder.itemView.startAnimation(animation)
+            lastAnimatedPosition = currentPosition
+        }
+    }
+
+    override fun getItemCount(): Int {
+        return messageList.size
+    }
+
+    private fun bindMessageContent(
+            textView: TextView,
+            imageView: ImageView,
+            chatMessage: ChatMessage
+    ) {
+        if (chatMessage.messageType == "image" && chatMessage.imageData.isNotBlank()) {
+            textView.visibility = View.GONE
+            imageView.visibility = View.VISIBLE
+
+            val imageBytes = Base64.decode(chatMessage.imageData, Base64.DEFAULT)
+            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+            imageView.setImageBitmap(bitmap)
+        } else {
+            imageView.visibility = View.GONE
+            textView.visibility = View.VISIBLE
+            textView.text = chatMessage.message
+        }
+    }
+
+    private fun formatTimestamp(timestamp: Long): String {
+        return ChatTimeHelper.formatChatTime(timestamp)
+    }
+
+    private fun setMessageTopMargin(itemView: View, isSameSenderAsPrevious: Boolean) {
+        val layoutParams = itemView.layoutParams as RecyclerView.LayoutParams
+
+        val smallMargin = dpToPx(itemView, 1)
+        val largeMargin = dpToPx(itemView, 8)
+
+        layoutParams.topMargin = if (isSameSenderAsPrevious) smallMargin else largeMargin
+        itemView.layoutParams = layoutParams
+    }
+
+    private fun dpToPx(view: View, dp: Int): Int {
+        val density = view.context.resources.displayMetrics.density
+        return (dp * density).toInt()
+    }
+}
