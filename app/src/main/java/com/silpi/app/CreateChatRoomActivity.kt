@@ -160,11 +160,7 @@ class CreateChatRoomActivity : AppCompatActivity() {
         recyclerViewSelectedUser.visibility =
                 if (selectedUserList.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
 
-        btnCreateRoom.text = if (selectedUserList.isEmpty()) {
-            "생성"
-        } else {
-            "${selectedUserList.size} 생성"
-        }
+        btnCreateRoom.text = "채팅방 만들기"
     }
 
     private fun showRoomNameDialog() {

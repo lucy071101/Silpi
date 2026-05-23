@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E5F0EC">
+    android:background="@drawable/bg_profile_screen">
 
     <LinearLayout
         android:id="@+id/layoutChatContent"
@@ -60,6 +60,19 @@
                 android:textStyle="bold" />
 
             <ImageButton
+                android:id="@+id/buttonPhone"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="Phone"
+                android:minWidth="48dp"
+                android:minHeight="48dp"
+                android:padding="6dp"
+                android:scaleType="center"
+                android:src="@drawable/ic_chat_phone" />
+
+            <ImageButton
                 android:id="@+id/buttonCall"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
@@ -89,7 +102,8 @@
             android:id="@+id/recyclerViewChat"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:background="@drawable/bg_profile_screen" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -107,7 +121,8 @@
                 android:contentDescription="Add"
                 android:minWidth="48dp"
                 android:minHeight="48dp"
-                android:src="@android:drawable/ic_input_add" />
+                android:padding="8dp"
+                android:src="@drawable/ic_chat_plus_purple" />
 
             <EditText
                 android:id="@+id/editTextMessage"
