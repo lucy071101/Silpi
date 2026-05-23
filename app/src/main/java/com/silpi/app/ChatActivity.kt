@@ -35,6 +35,7 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var sendButton: ImageButton
     private lateinit var backButton: ImageButton
     private lateinit var addButton: ImageButton
+    private lateinit var phoneButton: ImageButton
     private lateinit var moreButton: ImageButton
     private lateinit var menuPanel: FrameLayout
     private lateinit var imageProfile: ImageView
@@ -89,6 +90,7 @@ class ChatActivity : AppCompatActivity() {
         sendButton = findViewById(R.id.buttonSend)
         backButton = findViewById(R.id.buttonBack)
         addButton = findViewById(R.id.buttonAdd)
+        phoneButton = findViewById(R.id.buttonPhone)
         moreButton = findViewById(R.id.buttonMore)
         menuPanel = findViewById(R.id.layoutChatMenuPanel)
         imageProfile = findViewById(R.id.imageProfile)
@@ -274,10 +276,12 @@ class ChatActivity : AppCompatActivity() {
                     currentChatRoom = chatRoom.copy(roomId = document.id)
 
                     if (chatRoom.group) {
+                        phoneButton.visibility = View.GONE
                         bindGroupRoomHeader(chatRoom)
                         return@addOnSuccessListener
                     }
 
+                    phoneButton.visibility = View.VISIBLE
                     val otherUserId = chatRoom.participants.firstOrNull { it != myUserId }
                     textViewUserName.text = chatRoom.participantNames[otherUserId] ?: "채팅"
                     imageProfile.visibility = View.VISIBLE

@@ -4,6 +4,8 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.imageview.ShapeableImageView
@@ -27,6 +29,7 @@ class ChatRoomAdapter(
         val textViewRoomName: TextView = itemView.findViewById(R.id.textViewRoomName)
         val textViewLastMessage: TextView = itemView.findViewById(R.id.textViewLastMessage)
         val textViewTime: TextView = itemView.findViewById(R.id.textViewTime)
+        val layoutUnreadBadge: FrameLayout = itemView.findViewById(R.id.layoutUnreadBadge)
         val textViewUnreadCount: TextView = itemView.findViewById(R.id.textViewUnreadCount)
     }
 
@@ -43,13 +46,14 @@ class ChatRoomAdapter(
         holder.textViewRoomName.text = getDisplayRoomName(chatRoom)
         holder.textViewLastMessage.text = chatRoom.lastMessage.ifBlank { "대화를 시작해보세요" }
         holder.textViewTime.text = formatChatListTime(chatRoom.lastMessageTime)
+        adjustTimePosition(holder, chatRoom)
         bindProfileImage(holder, chatRoom)
 
         if (unread > 0) {
-            holder.textViewUnreadCount.visibility = View.VISIBLE
+            holder.layoutUnreadBadge.visibility = View.VISIBLE
             holder.textViewUnreadCount.text = unread.toString()
         } else {
-            holder.textViewUnreadCount.visibility = View.GONE
+            holder.layoutUnreadBadge.visibility = View.GONE
         }
 
         holder.itemView.setOnClickListener {
@@ -99,6 +103,12 @@ class ChatRoomAdapter(
         ProfileImageHelper.setProfileImage(holder.imageViewProfile, profileImageData)
     }
 
+    private fun adjustTimePosition(holder: ChatRoomViewHolder, chatRoom: ChatRoom) {
+        val layoutParams = holder.textViewTime.layoutParams as RelativeLayout.LayoutParams
+        layoutParams.topMargin = dpToPx(holder.itemView, if (chatRoom.group) 18 else 22)
+        holder.textViewTime.layoutParams = layoutParams
+    }
+
     private fun bindGroupProfileCluster(holder: ChatRoomViewHolder, participantIds: List<String>) {
         for (index in holder.imageGroupProfiles.indices) {
             val imageView = holder.imageGroupProfiles[index]
@@ -115,5 +125,10 @@ class ChatRoomAdapter(
     private fun formatChatListTime(timestamp: Long): String {
         if (timestamp == 0L) return ""
         return ChatTimeHelper.formatChatTime(timestamp)
+    }
+
+    private fun dpToPx(view: View, dp: Int): Int {
+        val density = view.context.resources.displayMetrics.density
+        return (dp * density).toInt()
     }
 }
