@@ -160,11 +160,7 @@ class CreateChatRoomActivity : AppCompatActivity() {
         recyclerViewSelectedUser.visibility =
                 if (selectedUserList.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
 
-        btnCreateRoom.text = if (selectedUserList.isEmpty()) {
-            "생성"
-        } else {
-            "${selectedUserList.size} 생성"
-        }
+        btnCreateRoom.text = "채팅방 만들기"
     }
 
     private fun showRoomNameDialog() {
@@ -289,12 +285,68 @@ class CreateChatRoomActivity : AppCompatActivity() {
                         startActivity(intent)
                         finish()
                     } else {
-                        createChatRoom(roomName = "")
+                        openOrCreatePrivateRoom(otherUser)
                     }
                 }
                 .addOnFailureListener {
                     Toast.makeText(this, "기존 채팅방 확인에 실패했습니다.", Toast.LENGTH_SHORT).show()
                 }
+    }
+
+    private fun openOrCreatePrivateRoom(otherUser: SelectableUser) {
+        val roomId = createPrivateRoomId(myUserId, otherUser.userId)
+        val roomRef = db.collection("chats").document(roomId)
+
+        db.runTransaction { transaction ->
+            val document = transaction.get(roomRef)
+            if (!document.exists()) {
+                val participants = listOf(myUserId, otherUser.userId)
+                val participantNames = mapOf(
+                        myUserId to myUserName,
+                        otherUser.userId to otherUser.userName
+                )
+                val unreadCount = participants.associateWith { 0 }
+                val searchNames = mapOf(
+                        myUserId to normalizeSearchText(otherUser.userName),
+                        otherUser.userId to normalizeSearchText(myUserName)
+                )
+                val chatRoom = ChatRoom(
+                        roomId = roomId,
+                        roomName = "",
+                        participants = participants,
+                        participantNames = participantNames,
+                        searchName = normalizeSearchText(myUserName),
+                        searchNames = searchNames,
+                        lastMessage = "",
+                        lastMessageTime = 0L,
+                        unreadCount = unreadCount,
+                        group = false,
+                        createdBy = myUserId,
+                        createdAt = System.currentTimeMillis()
+                )
+
+                transaction.set(roomRef, chatRoom)
+            }
+
+            roomId
+        }
+                .addOnSuccessListener { createdOrExistingRoomId ->
+                    Toast.makeText(this, "채팅방 생성 완료", Toast.LENGTH_SHORT).show()
+
+                    val intent = Intent(this, ChatActivity::class.java)
+                    intent.putExtra("chatRoomId", createdOrExistingRoomId)
+                    startActivity(intent)
+                    finish()
+                }
+                .addOnFailureListener {
+                    Toast.makeText(this, "생성 실패", Toast.LENGTH_SHORT).show()
+                }
+    }
+
+    private fun createPrivateRoomId(firstUserId: String, secondUserId: String): String {
+        return listOf(firstUserId, secondUserId)
+                .sorted()
+                .joinToString(separator = "_", prefix = "private_")
     }
 
     private fun getSelectedUsers(): List<SelectableUser> {

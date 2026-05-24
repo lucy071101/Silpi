@@ -9,7 +9,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:background="#00C73C"
+        android:background="#806BB0"
         android:paddingStart="16dp"
         android:paddingEnd="16dp">
 
@@ -37,20 +37,6 @@
             android:textSize="24sp"
             android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnCreateRoom"
-            android:layout_width="wrap_content"
-            android:layout_height="44dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:background="@android:color/transparent"
-            android:minWidth="0dp"
-            android:paddingStart="8dp"
-            android:paddingEnd="0dp"
-            android:text="생성"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp"
-            android:textStyle="bold" />
     </RelativeLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -101,4 +87,18 @@
         android:layout_marginTop="8dp"
         android:layout_weight="1"
         android:background="#FFFFFF" />
+
+    <Button
+        android:id="@+id/btnCreateRoom"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_create_room_button"
+        android:text="채팅방 만들기"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold" />
 </LinearLayout>

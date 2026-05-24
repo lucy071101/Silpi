@@ -2,9 +2,13 @@ package com.silpi.app
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
@@ -28,7 +32,10 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var editTextName: EditText
     private lateinit var editTextCity: EditText
     private lateinit var editTextBio: EditText
+    private lateinit var textViewEditHint: TextView
     private lateinit var textViewInterests: TextView
+    private lateinit var buttonSelectInterests: TextView
+    private lateinit var layoutInterestsEdit: View
     private lateinit var layoutProfileLoadError: View
     private lateinit var textViewProfileLoadError: TextView
     private lateinit var buttonRetryProfileLoad: Button
@@ -73,7 +80,10 @@ class ProfileActivity : AppCompatActivity() {
         editTextName = findViewById(R.id.editTextName)
         editTextCity = findViewById(R.id.editTextCity)
         editTextBio = findViewById(R.id.editTextBio)
+        textViewEditHint = findViewById(R.id.textViewEditHint)
         textViewInterests = findViewById(R.id.textViewInterests)
+        buttonSelectInterests = findViewById(R.id.buttonSelectInterests)
+        layoutInterestsEdit = findViewById(R.id.layoutInterestsEdit)
         layoutProfileLoadError = findViewById(R.id.layoutProfileLoadError)
         textViewProfileLoadError = findViewById(R.id.textViewProfileLoadError)
         buttonRetryProfileLoad = findViewById(R.id.buttonRetryProfileLoad)
@@ -129,6 +139,18 @@ class ProfileActivity : AppCompatActivity() {
             }
         }
 
+        buttonSelectInterests.setOnClickListener {
+            if (isEditing && !profileLoadFailed) {
+                showInterestDialog()
+            }
+        }
+
+        layoutInterestsEdit.setOnClickListener {
+            if (isEditing && !profileLoadFailed) {
+                showInterestDialog()
+            }
+        }
+
         buttonSave.setOnClickListener {
             if (profileLoadFailed) return@setOnClickListener
 
@@ -150,14 +172,25 @@ class ProfileActivity : AppCompatActivity() {
         if (profileLoadFailed) return
 
         buttonSave.text = if (isEditing) "저장" else "수정"
+        buttonSave.setTextColor(if (isEditing) 0xFFFFFFFF.toInt() else 0xFF162033.toInt())
+        buttonSave.setBackgroundResource(if (isEditing) R.drawable.bg_profile_save_button else R.drawable.bg_edit_text_clear)
 
         imageProfile.isEnabled = isEditing
+        textViewEditHint.visibility = if (isEditing) View.VISIBLE else View.GONE
         textViewInterests.isEnabled = isEditing
         textViewInterests.alpha = if (isEditing) 1.0f else 0.92f
+        buttonSelectInterests.visibility = if (isEditing) View.VISIBLE else View.GONE
+        layoutInterestsEdit.setBackgroundResource(
+                if (isEditing) R.drawable.bg_profile_soft_edit_field else R.drawable.bg_interest_chip
+        )
 
         setEditTextEditable(editTextName, isEditing)
         setEditTextEditable(editTextCity, isEditing)
         setEditTextEditable(editTextBio, isEditing)
+        updateEditFieldStyle(editTextName, isEditing)
+        updateSoftEditFieldStyle(editTextCity, isEditing)
+        updateSoftEditFieldStyle(editTextBio, isEditing)
+        updateInterestText()
     }
 
     private fun setEditTextEditable(editText: EditText, editable: Boolean) {
@@ -167,36 +200,95 @@ class ProfileActivity : AppCompatActivity() {
         editText.isLongClickable = editable
     }
 
+    private fun updateEditFieldStyle(editText: EditText, editable: Boolean) {
+        editText.setBackgroundResource(
+                if (editable) R.drawable.bg_profile_edit_field else R.drawable.bg_edit_text_clear
+        )
+    }
+
+    private fun updateSoftEditFieldStyle(editText: EditText, editable: Boolean) {
+        editText.setBackgroundResource(
+                if (editable) R.drawable.bg_profile_soft_edit_field else R.drawable.bg_interest_chip
+        )
+    }
+
     private fun showInterestDialog() {
         val tempSelectedInterests = selectedInterests.toMutableList()
-        val checkedItems = interestOptions
-                .map { tempSelectedInterests.contains(it) }
-                .toBooleanArray()
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_interest_picker, null)
+        val searchEditText = dialogView.findViewById<EditText>(R.id.editTextInterestSearch)
+        val optionGrid = dialogView.findViewById<GridLayout>(R.id.gridInterestOptions)
+        val confirmButton = dialogView.findViewById<TextView>(R.id.buttonConfirmInterest)
 
-        AlertDialog.Builder(this)
-                .setTitle("취미 및 관심사 선택")
-                .setMultiChoiceItems(interestOptions.toTypedArray(), checkedItems) { _, which, isChecked ->
-                    val interest = interestOptions[which]
-                    if (isChecked) {
-                        if (!tempSelectedInterests.contains(interest)) {
-                            tempSelectedInterests.add(interest)
-                        }
-                    } else {
+        fun bindInterestOptions(keyword: String = "") {
+            optionGrid.removeAllViews()
+            val filteredOptions = interestOptions.filter {
+                it.contains(keyword.trim(), ignoreCase = true)
+            }
+
+            for (interest in filteredOptions) {
+                val optionView = TextView(this)
+                val isSelected = tempSelectedInterests.contains(interest)
+                optionView.text = interest
+                optionView.gravity = android.view.Gravity.CENTER
+                optionView.textSize = 22f
+                optionView.setTypeface(null, android.graphics.Typeface.BOLD)
+                optionView.setBackgroundResource(R.drawable.bg_interest_option)
+                optionView.isSelected = isSelected
+                optionView.setTextColor(if (isSelected) 0xFFFFFFFF.toInt() else 0xFF7D68A8.toInt())
+                optionView.setOnClickListener {
+                    if (tempSelectedInterests.contains(interest)) {
                         tempSelectedInterests.remove(interest)
+                        optionView.isSelected = false
+                        optionView.setTextColor(0xFF7D68A8.toInt())
+                    } else {
+                        tempSelectedInterests.add(interest)
+                        optionView.isSelected = true
+                        optionView.setTextColor(0xFFFFFFFF.toInt())
                     }
                 }
-                .setNegativeButton("취소", null)
-                .setPositiveButton("확인") { _, _ ->
-                    selectedInterests.clear()
-                    selectedInterests.addAll(tempSelectedInterests)
-                    updateInterestText()
+
+                val layoutParams = GridLayout.LayoutParams().apply {
+                    width = 0
+                    height = dpToPx(92)
+                    columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
+                    setMargins(0, 0, dpToPx(16), dpToPx(18))
                 }
-                .show()
+                optionGrid.addView(optionView, layoutParams)
+            }
+        }
+
+        val dialog = AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create()
+
+        searchEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                bindInterestOptions(s.toString())
+            }
+
+            override fun afterTextChanged(s: Editable?) = Unit
+        })
+
+        confirmButton.setOnClickListener {
+            selectedInterests.clear()
+            selectedInterests.addAll(tempSelectedInterests)
+            updateInterestText()
+            dialog.dismiss()
+        }
+
+        bindInterestOptions()
+        dialog.show()
+    }
+
+    private fun dpToPx(dp: Int): Int {
+        return (dp * resources.displayMetrics.density).toInt()
     }
 
     private fun updateInterestText() {
         textViewInterests.text = if (selectedInterests.isEmpty()) {
-            "관심사를 선택하세요"
+            if (isEditing) "취미를 선택해주세요" else "관심사를 선택하세요"
         } else {
             selectedInterests.joinToString("   ") { interest -> "#$interest" }
         }

@@ -22,14 +22,13 @@
 
         <ImageButton
             android:id="@+id/buttonRemoveSelectedUser"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_gravity="top|end"
             android:background="@drawable/bg_selected_user_remove"
             android:contentDescription="선택 해제"
-            android:padding="5dp"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            app:tint="#FFFFFF" />
+            android:padding="6dp"
+            android:src="@drawable/ic_selected_user_remove" />
     </FrameLayout>
 
     <TextView

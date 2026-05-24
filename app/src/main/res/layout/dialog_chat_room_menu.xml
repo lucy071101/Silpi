@@ -3,23 +3,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_chat_menu_sheet"
+    android:background="@drawable/bg_profile_screen"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingStart="24dp"
-        android:paddingTop="20dp"
-        android:paddingEnd="24dp"
+        android:paddingTop="0dp"
         android:paddingBottom="28dp">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="72dp"
+            android:background="#FFFFFF"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp">
 
             <ImageButton
                 android:id="@+id/buttonCloseMenu"
@@ -42,7 +43,7 @@
                 android:background="@android:color/transparent"
                 android:contentDescription="알림"
                 android:padding="8dp"
-                android:src="@android:drawable/ic_lock_silent_mode" />
+                android:src="@drawable/ic_chat_bell_bold" />
 
             <ImageButton
                 android:id="@+id/buttonMenuFavorite"
@@ -52,7 +53,7 @@
                 android:background="@android:color/transparent"
                 android:contentDescription="즐겨찾기"
                 android:padding="8dp"
-                android:src="@android:drawable/btn_star_big_off" />
+                android:src="@drawable/ic_chat_star_bold" />
 
             <ImageButton
                 android:id="@+id/buttonMenuSettings"
@@ -62,7 +63,7 @@
                 android:background="@android:color/transparent"
                 android:contentDescription="설정"
                 android:padding="8dp"
-                android:src="@android:drawable/ic_menu_manage" />
+                android:src="@drawable/ic_chat_settings_bold" />
         </LinearLayout>
 
         <FrameLayout
@@ -119,71 +120,100 @@
             android:id="@+id/textViewMenuRoomName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
             android:layout_marginTop="14dp"
+            android:layout_marginEnd="24dp"
             android:gravity="center"
             android:text="채팅방"
             android:textColor="#111111"
             android:textSize="22sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/textViewMenuParticipantTitle"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
             android:layout_marginTop="30dp"
-            android:text="대화상대"
-            android:textColor="#222222"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:layout_marginEnd="24dp"
+            android:background="@drawable/bg_chat_menu_section"
+            android:orientation="vertical"
+            android:paddingStart="18dp"
+            android:paddingTop="18dp"
+            android:paddingEnd="18dp"
+            android:paddingBottom="14dp">
 
-        <TextView
-            android:id="@+id/textViewInvitePlaceholder"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="10dp"
-            android:gravity="center_vertical"
-            android:text="+  초대하기"
-            android:textColor="#007AFF"
-            android:textSize="16sp" />
+            <TextView
+                android:id="@+id/textViewMenuParticipantTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="대화상대"
+                android:textColor="#222222"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewMenuParticipants"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false" />
+            <TextView
+                android:id="@+id/textViewInvitePlaceholder"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:text="+  초대하기"
+                android:textColor="#806BB0"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/textViewShowAllParticipants"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:gravity="center"
-            android:text="전체보기"
-            android:textColor="#666666"
-            android:textSize="15sp"
-            android:visibility="gone" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewMenuParticipants"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="18dp"
-            android:background="@drawable/bg_chat_menu_divider" />
+            <TextView
+                android:id="@+id/textViewShowAllParticipants"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:gravity="center"
+                android:text="전체보기"
+                android:textColor="#666666"
+                android:textSize="15sp"
+                android:visibility="gone" />
+        </LinearLayout>
 
-        <TextView
-            android:id="@+id/textViewExitChatRoom"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:gravity="center_vertical"
-            android:text="채팅방 나가기"
-            android:textColor="#E85D3F"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/textViewMenuCreatedInfo"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
             android:layout_marginTop="18dp"
-            android:textColor="#777777"
-            android:textSize="14sp" />
+            android:layout_marginEnd="24dp"
+            android:background="@drawable/bg_chat_menu_section_alt"
+            android:orientation="vertical"
+            android:paddingStart="18dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="18dp"
+            android:paddingBottom="18dp">
+
+            <TextView
+                android:id="@+id/textViewExitChatRoom"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:gravity="center_vertical"
+                android:text="채팅방 나가기"
+                android:textColor="#E85D3F"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@drawable/bg_chat_menu_divider" />
+
+            <TextView
+                android:id="@+id/textViewMenuCreatedInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:textColor="#777777"
+                android:textSize="14sp" />
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

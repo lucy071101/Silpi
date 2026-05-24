@@ -27,6 +27,8 @@ class ChatListActivity : AppCompatActivity() {
     private lateinit var buttonCloseSearch: ImageButton
     private lateinit var buttonSettings: ImageButton
     private lateinit var textViewTitle: TextView
+    private lateinit var textViewSearchLabel: TextView
+    private lateinit var textViewAddLabel: TextView
     private lateinit var editTextChatSearch: EditText
     private lateinit var chatRoomAdapter: ChatRoomAdapter
 
@@ -61,6 +63,8 @@ class ChatListActivity : AppCompatActivity() {
         buttonCloseSearch = findViewById(R.id.buttonCloseSearch)
         buttonSettings = findViewById(R.id.buttonSettings)
         textViewTitle = findViewById(R.id.textViewTitle)
+        textViewSearchLabel = findViewById(R.id.textViewSearchLabel)
+        textViewAddLabel = findViewById(R.id.textViewAddLabel)
         editTextChatSearch = findViewById(R.id.editTextChatSearch)
     }
 
@@ -179,6 +183,8 @@ class ChatListActivity : AppCompatActivity() {
         buttonSettings.visibility = View.GONE
         buttonAddRoom.visibility = View.GONE
         buttonSearch.visibility = View.GONE
+        textViewSearchLabel.visibility = View.GONE
+        textViewAddLabel.visibility = View.GONE
         buttonCloseSearch.visibility = View.VISIBLE
         editTextChatSearch.requestFocus()
         showKeyboard(editTextChatSearch)
@@ -193,6 +199,8 @@ class ChatListActivity : AppCompatActivity() {
         buttonSettings.visibility = View.VISIBLE
         buttonAddRoom.visibility = View.VISIBLE
         buttonSearch.visibility = View.VISIBLE
+        textViewSearchLabel.visibility = View.VISIBLE
+        textViewAddLabel.visibility = View.VISIBLE
         buttonCloseSearch.visibility = View.GONE
         hideKeyboard(editTextChatSearch)
         applyChatRoomFilter()
@@ -240,57 +248,39 @@ class ChatListActivity : AppCompatActivity() {
     private fun exitChatRoom(chatRoom: ChatRoom) {
         val roomRef = db.collection("chats").document(chatRoom.roomId)
 
-        roomRef.get()
-                .addOnSuccessListener { document ->
-                    if (!document.exists()) {
-                        Toast.makeText(this, "채팅방이 이미 없습니다.", Toast.LENGTH_SHORT).show()
-                        return@addOnSuccessListener
-                    }
+        db.runTransaction { transaction ->
+            val document = transaction.get(roomRef)
+            val currentRoom = document.toObject(ChatRoom::class.java)
+                    ?: throw IllegalStateException("Failed to load chat room.")
 
-                    val currentRoom = document.toObject(ChatRoom::class.java)
-                    if (currentRoom == null) {
-                        Toast.makeText(this, "채팅방 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
-                        return@addOnSuccessListener
-                    }
+            val updatedParticipants = currentRoom.participants.filter { it != myUserId }
+            val updatedParticipantNames = currentRoom.participantNames.toMutableMap()
+            val updatedUnreadCount = currentRoom.unreadCount.toMutableMap()
+            val updatedSearchNames = currentRoom.searchNames.toMutableMap()
 
-                    val updatedParticipants = currentRoom.participants.filter { it != myUserId }
-                    val updatedParticipantNames = currentRoom.participantNames.toMutableMap()
-                    val updatedUnreadCount = currentRoom.unreadCount.toMutableMap()
-                    val updatedSearchNames = currentRoom.searchNames.toMutableMap()
+            updatedParticipantNames.remove(myUserId)
+            updatedUnreadCount.remove(myUserId)
+            updatedSearchNames.remove(myUserId)
 
-                    updatedParticipantNames.remove(myUserId)
-                    updatedUnreadCount.remove(myUserId)
-                    updatedSearchNames.remove(myUserId)
-
-                    if (updatedParticipants.isEmpty()) {
-                        roomRef.delete()
-                                .addOnSuccessListener {
-                                    Toast.makeText(this, "마지막 참여자가 나가 채팅방이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
-                                }
-                                .addOnFailureListener { e ->
-                                    Log.e("ChatListActivity", "Empty chat room delete failed", e)
-                                    Toast.makeText(this, "나가기 실패", Toast.LENGTH_SHORT).show()
-                                }
-                    } else {
-                        val updates = mapOf(
+            if (updatedParticipants.isEmpty()) {
+                transaction.delete(roomRef)
+            } else {
+                transaction.update(
+                        roomRef,
+                        mapOf(
                                 "participants" to updatedParticipants,
                                 "participantNames" to updatedParticipantNames,
                                 "unreadCount" to updatedUnreadCount,
                                 "searchNames" to updatedSearchNames
                         )
-
-                        roomRef.update(updates)
-                                .addOnSuccessListener {
-                                    Toast.makeText(this, "채팅방에서 나갔습니다.", Toast.LENGTH_SHORT).show()
-                                }
-                                .addOnFailureListener { e ->
-                                    Log.e("ChatListActivity", "Chat room exit failed", e)
-                                    Toast.makeText(this, "나가기 실패", Toast.LENGTH_SHORT).show()
-                                }
-                    }
+                )
+            }
+        }
+                .addOnSuccessListener {
+                    Toast.makeText(this, "채팅방에서 나갔습니다.", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener { e ->
-                    Log.e("ChatListActivity", "Chat room load failed", e)
+                    Log.e("ChatListActivity", "Chat room exit failed", e)
                     Toast.makeText(this, "나가기 실패", Toast.LENGTH_SHORT).show()
                 }
     }

@@ -42,19 +42,19 @@
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
                     android:text="프로필"
-                    android:textColor="#111827"
+                    android:textColor="#162033"
                     android:textSize="26sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/buttonSave"
-                    android:layout_width="64dp"
-                    android:layout_height="48dp"
+                    android:layout_width="76dp"
+                    android:layout_height="44dp"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:gravity="center"
                     android:text="수정"
-                    android:textColor="#4B5563"
+                    android:textColor="#162033"
                     android:textSize="17sp"
                     android:textStyle="bold" />
             </RelativeLayout>
@@ -62,7 +62,23 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#E5E7EB" />
+                android:background="#E8E1F0" />
+
+            <TextView
+                android:id="@+id/textViewEditHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:gravity="center"
+                android:paddingStart="18dp"
+                android:paddingTop="16dp"
+                android:paddingEnd="18dp"
+                android:paddingBottom="0dp"
+                android:text="수정할 항목을 눌러 입력해주세요"
+                android:textColor="#806BB0"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
 
             <LinearLayout
                 android:id="@+id/layoutProfileLoadError"
@@ -113,28 +129,35 @@
 
                 <EditText
                     android:id="@+id/editTextName"
-                    android:layout_width="220dp"
-                    android:layout_height="wrap_content"
+                    android:layout_width="240dp"
+                    android:layout_height="56dp"
                     android:layout_marginTop="28dp"
                     android:background="@drawable/bg_edit_text_clear"
                     android:gravity="center"
-                    android:hint="이름"
+                    android:hint="이름을 입력하세요"
                     android:inputType="textPersonName"
                     android:maxLines="1"
-                    android:textColor="#111827"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:textColor="#162033"
+                    android:textColorHint="#A8A2B3"
                     android:textSize="28sp"
                     android:textStyle="bold" />
 
                 <EditText
                     android:id="@+id/editTextCity"
-                    android:layout_width="220dp"
-                    android:layout_height="wrap_content"
+                    android:layout_width="240dp"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="8dp"
                     android:background="@drawable/bg_edit_text_clear"
                     android:gravity="center"
-                    android:hint="지역"
+                    android:hint="사는 지역을 입력하세요"
                     android:inputType="text"
                     android:maxLines="1"
-                    android:textColor="#777777"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:textColor="#5D6878"
+                    android:textColorHint="#A8A2B3"
                     android:textSize="18sp" />
             </LinearLayout>
 
@@ -156,20 +179,25 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="자기소개"
-                    android:textColor="#777777"
+                    android:textColor="#162033"
                     android:textSize="20sp" />
 
                 <EditText
                     android:id="@+id/editTextBio"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="150dp"
                     android:layout_marginTop="18dp"
                     android:background="@drawable/bg_edit_text_clear"
                     android:gravity="top"
                     android:hint="자기소개를 입력하세요"
                     android:inputType="textMultiLine"
                     android:minLines="4"
-                    android:textColor="#2F3742"
+                    android:paddingStart="16dp"
+                    android:paddingTop="14dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="14dp"
+                    android:textColor="#202020"
+                    android:textColorHint="#A8A2B3"
                     android:textSize="18sp" />
             </LinearLayout>
 
@@ -187,25 +215,55 @@
                 android:paddingEnd="24dp"
                 android:paddingBottom="36dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="취미 및 관심사"
-                    android:textColor="#777777"
-                    android:textSize="20sp" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/textViewInterests"
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="취미 및 관심사"
+                        android:textColor="#162033"
+                        android:textSize="20sp" />
+
+                    <TextView
+                        android:id="@+id/buttonSelectInterests"
+                        android:layout_width="92dp"
+                        android:layout_height="42dp"
+                        android:background="@drawable/bg_interest_confirm_button"
+                        android:gravity="center"
+                        android:text="선택하기"
+                        android:textColor="#FFFFFF"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layoutInterestsEdit"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
                     android:background="@drawable/bg_interest_chip"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
                     android:paddingStart="18dp"
                     android:paddingTop="14dp"
                     android:paddingEnd="18dp"
-                    android:paddingBottom="14dp"
-                    android:textColor="#11864F"
-                    android:textSize="17sp" />
+                    android:paddingBottom="14dp">
+
+                    <TextView
+                        android:id="@+id/textViewInterests"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="#7D68A8"
+                        android:textSize="17sp" />
+
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

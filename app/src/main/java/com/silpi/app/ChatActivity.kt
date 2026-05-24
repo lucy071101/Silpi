@@ -35,6 +35,7 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var sendButton: ImageButton
     private lateinit var backButton: ImageButton
     private lateinit var addButton: ImageButton
+    private lateinit var phoneButton: ImageButton
     private lateinit var moreButton: ImageButton
     private lateinit var menuPanel: FrameLayout
     private lateinit var imageProfile: ImageView
@@ -89,6 +90,7 @@ class ChatActivity : AppCompatActivity() {
         sendButton = findViewById(R.id.buttonSend)
         backButton = findViewById(R.id.buttonBack)
         addButton = findViewById(R.id.buttonAdd)
+        phoneButton = findViewById(R.id.buttonPhone)
         moreButton = findViewById(R.id.buttonMore)
         menuPanel = findViewById(R.id.layoutChatMenuPanel)
         imageProfile = findViewById(R.id.imageProfile)
@@ -274,10 +276,12 @@ class ChatActivity : AppCompatActivity() {
                     currentChatRoom = chatRoom.copy(roomId = document.id)
 
                     if (chatRoom.group) {
+                        phoneButton.visibility = View.GONE
                         bindGroupRoomHeader(chatRoom)
                         return@addOnSuccessListener
                     }
 
+                    phoneButton.visibility = View.VISIBLE
                     val otherUserId = chatRoom.participants.firstOrNull { it != myUserId }
                     textViewUserName.text = chatRoom.participantNames[otherUserId] ?: "채팅"
                     imageProfile.visibility = View.VISIBLE
@@ -429,48 +433,39 @@ class ChatActivity : AppCompatActivity() {
     private fun exitChatRoom(chatRoom: ChatRoom) {
         val roomRef = db.collection("chats").document(chatRoomId)
 
-        roomRef.get()
-                .addOnSuccessListener { document ->
-                    val currentRoom = document.toObject(ChatRoom::class.java)
-                    if (currentRoom == null) {
-                        Toast.makeText(this, "채팅방 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
-                        return@addOnSuccessListener
-                    }
+        db.runTransaction { transaction ->
+            val document = transaction.get(roomRef)
+            val currentRoom = document.toObject(ChatRoom::class.java)
+                    ?: throw IllegalStateException("Failed to load chat room.")
 
-                    val updatedParticipants = currentRoom.participants.filter { it != myUserId }
-                    val updatedParticipantNames = currentRoom.participantNames.toMutableMap()
-                    val updatedUnreadCount = currentRoom.unreadCount.toMutableMap()
-                    val updatedSearchNames = currentRoom.searchNames.toMutableMap()
+            val updatedParticipants = currentRoom.participants.filter { it != myUserId }
+            val updatedParticipantNames = currentRoom.participantNames.toMutableMap()
+            val updatedUnreadCount = currentRoom.unreadCount.toMutableMap()
+            val updatedSearchNames = currentRoom.searchNames.toMutableMap()
 
-                    updatedParticipantNames.remove(myUserId)
-                    updatedUnreadCount.remove(myUserId)
-                    updatedSearchNames.remove(myUserId)
+            updatedParticipantNames.remove(myUserId)
+            updatedUnreadCount.remove(myUserId)
+            updatedSearchNames.remove(myUserId)
 
-                    if (updatedParticipants.isEmpty()) {
-                        roomRef.delete()
-                                .addOnSuccessListener { finish() }
-                                .addOnFailureListener { e ->
-                                    Log.e("ChatActivity", "Chat room delete failed", e)
-                                    Toast.makeText(this, "채팅방 나가기에 실패했습니다.", Toast.LENGTH_SHORT).show()
-                                }
-                    } else {
-                        val updates = mapOf(
+            if (updatedParticipants.isEmpty()) {
+                transaction.delete(roomRef)
+            } else {
+                transaction.update(
+                        roomRef,
+                        mapOf(
                                 "participants" to updatedParticipants,
                                 "participantNames" to updatedParticipantNames,
                                 "unreadCount" to updatedUnreadCount,
                                 "searchNames" to updatedSearchNames
                         )
-
-                        roomRef.update(updates)
-                                .addOnSuccessListener { finish() }
-                                .addOnFailureListener { e ->
-                                    Log.e("ChatActivity", "Chat room exit failed", e)
-                                    Toast.makeText(this, "채팅방 나가기에 실패했습니다.", Toast.LENGTH_SHORT).show()
-                                }
-                    }
+                )
+            }
+        }
+                .addOnSuccessListener {
+                    finish()
                 }
                 .addOnFailureListener { e ->
-                    Log.e("ChatActivity", "Chat room load failed", e)
+                    Log.e("ChatActivity", "Chat room exit failed", e)
                     Toast.makeText(this, "채팅방 나가기에 실패했습니다.", Toast.LENGTH_SHORT).show()
                 }
     }
