@@ -15,7 +15,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
 
     private List<DocumentSnapshot> postList = new ArrayList<>();
 
-    // 파이어베이스에서 게시글 목록을 받아와서 새로고침하는 기능
     public void setPosts(List<DocumentSnapshot> posts) {
         this.postList = posts;
         notifyDataSetChanged();
@@ -28,7 +27,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         return new PostViewHolder(view);
     }
 
-
     @Override
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
         DocumentSnapshot doc = postList.get(position);
@@ -36,33 +34,26 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         String title = doc.getString("title");
         String content = doc.getString("content");
         Long recommendCount = doc.getLong("recommendCount");
-
-        // 🌟 [추가] 파이어스토어 문서에서 실제 저장된 댓글 개수(commentCount)를 꺼내옵니다!
         Long commentCount = doc.getLong("commentCount");
 
-        // 숫자로 된 가짜 글과 Timestamp로 된 진짜 글을 모두 안전하게 가져오는 마법의 코드
+        String authorName = doc.getString("authorName");
+
         Long finalTime = 0L;
         Object timestampObj = doc.get("timestamp");
 
         if (timestampObj instanceof Number) {
-            // 우리가 만든 가짜 글 (숫자 1)
             finalTime = ((Number) timestampObj).longValue();
         } else if (timestampObj instanceof com.google.firebase.Timestamp) {
-            // 팀원이 만든 진짜 글 (Firebase 시간 객체)
             finalTime = ((com.google.firebase.Timestamp) timestampObj).toDate().getTime();
         }
 
         holder.tvTitle.setText(title != null ? title : "제목 없음");
         holder.tvContent.setText(content != null ? content : "내용이 없습니다.");
-        holder.tvAuthor.setText("익명");
 
-        // 시간 계산기에 안전하게 변환된 시간을 넣습니다!
+        holder.tvAuthor.setText(authorName != null ? authorName : "익명");
+
         holder.tvTime.setText(formatTimeString(finalTime));
-
         holder.tvRecommend.setText("👍 " + (recommendCount != null ? recommendCount : 0));
-
-        // 🌟 [핵심 변경] 더미 데이터 "5" 대신, 파이어베이스에서 가져온 진짜 댓글 개수를 넣어줍니다!
-        // 만약 데이터가 비어있으면(null) 안전하게 0개로 표시합니다.
         holder.tvComment.setText("💬 " + (commentCount != null ? commentCount : 0));
 
         holder.itemView.setOnClickListener(v -> {
@@ -91,12 +82,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         }
     }
 
-    // 방금 전, 몇 분 전 등 시간을 예쁘게 계산해 주는 마법의 도구
     private String formatTimeString(Long timestamp) {
         if (timestamp == null) return "알 수 없음";
 
         long currentTime = System.currentTimeMillis();
-        long diffTime = (currentTime - timestamp) / 1000; // 초 단위로 변환
+        long diffTime = (currentTime - timestamp) / 1000;
 
         if (diffTime < 60) {
             return "방금 전";

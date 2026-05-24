@@ -2,25 +2,17 @@ package com.silpi.app;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
+import androidx.cardview.widget.CardView;
 
 public class CommunityListActivity extends AppCompatActivity {
 
     private EditText etSearch;
     private ImageView btnSearch;
-    private Button btnBaduk, btnHike, btnWalk, btnFish;
-
-    private RecyclerView rvPopular;
-    private CommunityAdapter communityAdapter;
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private CardView btnExercise, btnFree, btnBaduk, btnJanggi, btnHike, btnTravel, btnFish, btnRead;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,69 +20,43 @@ public class CommunityListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_community_list);
 
         initViews();
-        setupRecyclerView();
-
-        // 🌟 여기가 핵심입니다! 이 줄이 있어야 버튼이 작동합니다.
         setClickListeners();
-
-        loadPopularCommunities();
     }
 
     private void initViews() {
         etSearch = findViewById(R.id.et_search_community);
         btnSearch = findViewById(R.id.btn_search);
+        btnExercise = findViewById(R.id.btn_category_exercise);
+        btnFree = findViewById(R.id.btn_category_free);
         btnBaduk = findViewById(R.id.btn_category_baduk);
+        btnJanggi = findViewById(R.id.btn_category_janggi);
         btnHike = findViewById(R.id.btn_category_hike);
-        btnWalk = findViewById(R.id.btn_category_walk);
+        btnTravel = findViewById(R.id.btn_category_travel);
         btnFish = findViewById(R.id.btn_category_fish);
-        rvPopular = findViewById(R.id.rv_popular_communities);
+        btnRead = findViewById(R.id.btn_category_read);
     }
 
-    private void setupRecyclerView() {
-        communityAdapter = new CommunityAdapter();
-        rvPopular.setLayoutManager(new LinearLayoutManager(this));
-        rvPopular.setAdapter(communityAdapter);
-    }
-
-    // 🌟 버튼을 눌렀을 때 어디로 갈지 정해주는 곳!
-    // 🌟 이 부분을 찾아서 아래처럼 토스트(Toast) 메시지를 한 줄 추가해 보세요!
     private void setClickListeners() {
+        btnExercise.setOnClickListener(v -> moveToCommunityDetail("운동"));
+        btnFree.setOnClickListener(v -> moveToCommunityDetail("자유"));
         btnBaduk.setOnClickListener(v -> moveToCommunityDetail("바둑"));
+        btnJanggi.setOnClickListener(v -> moveToCommunityDetail("장기"));
         btnHike.setOnClickListener(v -> moveToCommunityDetail("등산"));
-        btnWalk.setOnClickListener(v -> moveToCommunityDetail("산책"));
+        btnTravel.setOnClickListener(v -> moveToCommunityDetail("여행"));
         btnFish.setOnClickListener(v -> moveToCommunityDetail("낚시"));
+        btnRead.setOnClickListener(v -> moveToCommunityDetail("독서"));
 
-        // 검색 버튼 리스너를 메서드 내부 하단에 올바르게 추가합니다.
         btnSearch.setOnClickListener(v -> {
             String searchQuery = etSearch.getText().toString().trim();
             if (!searchQuery.isEmpty()) {
-                // 검색 로직 수행 또는 검색 결과를 보여주는 액티비티로 이동
                 Toast.makeText(CommunityListActivity.this, searchQuery + " 검색", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    // 🌟 화면을 게시판으로 실제로 넘겨주는 마법의 문구!
     private void moveToCommunityDetail(String categoryName) {
         Intent intent = new Intent(CommunityListActivity.this, PostListActivity.class);
         intent.putExtra("communityName", categoryName);
         startActivity(intent);
-    }
-
-    private void loadPopularCommunities() {
-        db.collection("communities")
-                .orderBy("memberCount", Query.Direction.DESCENDING)
-                .limit(10)
-                .addSnapshotListener((value, error) -> {
-                    // 에러가 발생했는지 먼저 확인하는 방어 코드를 추가합니다.
-                    if (error != null) {
-                        android.util.Log.e("CommunityListActivity", "데이터 로드 실패: ", error);
-                        return; // 에러가 있다면 아래 코드를 실행하지 않고 리스너를 빠져나갑니다.
-                    }
-
-                    if (value != null) {
-                        communityAdapter.setCommunities(value.getDocuments());
-                    }
-                });
     }
 }

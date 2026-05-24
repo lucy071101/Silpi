@@ -1,12 +1,15 @@
 package com.silpi.app;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Base64;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -19,18 +22,18 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 public class PostWriteActivity extends AppCompatActivity {
 
-    // 파이어베이스 도구 초기화
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final FirebaseStorage storage = FirebaseStorage.getInstance();
+    // 🌟 Storage 관련 코드 삭제 완료!
 
     private ImageView btnCancel, btnPhoto, ivPreview;
     private TextView btnComplete;
@@ -38,8 +41,6 @@ public class PostWriteActivity extends AppCompatActivity {
     private CheckBox cbAnonymous;
 
     private Uri selectedImageUri;
-
-    // 🌟 1. 이 글이 어떤 카테고리에 속하는지 저장할 변수 (기본값은 "일반")
     private String category = "일반";
 
     private final ActivityResultLauncher<Intent> pickImageLauncher = registerForActivityResult(
@@ -58,7 +59,6 @@ public class PostWriteActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_post_write);
 
-        // 🌟 2. 이전 화면(게시판 목록)에서 넘겨준 카테고리 이름("바둑", "등산" 등)을 받습니다.
         if (getIntent().hasExtra("category")) {
             category = getIntent().getStringExtra("category");
         }
@@ -89,32 +89,44 @@ public class PostWriteActivity extends AppCompatActivity {
         btnComplete.setOnClickListener(v -> uploadPostWithImage());
     }
 
-    // 사진 유무에 따른 업로드 로직 분리
+    // 🌟 Storage 대신 사진을 글자로 암호화해서 올리도록 변경!
     private void uploadPostWithImage() {
         String title = etTitle.getText().toString().trim();
         String content = etContent.getText().toString().trim();
         boolean isAnonymous = cbAnonymous.isChecked();
 
-        // 중복 클릭 방지
         btnComplete.setEnabled(false);
         Toast.makeText(this, "동네 소식을 올리는 중...", Toast.LENGTH_SHORT).show();
 
         if (selectedImageUri != null) {
-            // 사진이 있는 경우: 스토리지에 먼저 업로드
-            String fileName = "posts/" + System.currentTimeMillis() + ".jpg";
-            StorageReference ref = storage.getReference().child(fileName);
+            // 사진을 Base64 글자로 변환
+            String base64Image = encodeImageToBase64(selectedImageUri);
 
-            ref.putFile(selectedImageUri)
-                    .addOnSuccessListener(taskSnapshot -> ref.getDownloadUrl().addOnSuccessListener(uri -> {
-                        saveToFirestore(title, content, uri.toString(), isAnonymous);
-                    }))
-                    .addOnFailureListener(e -> {
-                        btnComplete.setEnabled(true);
-                        Toast.makeText(this, "사진 업로드 실패", Toast.LENGTH_SHORT).show();
-                    });
+            if (base64Image != null) {
+                // 변환된 글자 데이터를 데이터베이스에 바로 저장
+                saveToFirestore(title, content, base64Image, isAnonymous);
+            } else {
+                btnComplete.setEnabled(true);
+                Toast.makeText(this, "사진을 처리하는 데 실패했습니다.", Toast.LENGTH_SHORT).show();
+            }
         } else {
-            // 사진이 없는 경우: 텍스트만 저장
             saveToFirestore(title, content, null, isAnonymous);
+        }
+    }
+
+    // 🌟 사진(Uri)을 엄청나게 긴 글자(Base64)로 바꿔주는 마법의 해독기(변환기)
+    private String encodeImageToBase64(Uri uri) {
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(uri);
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            // 사진 용량을 살짝 압축해서 데이터베이스가 버거워하지 않게 합니다 (품질 70%)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+            byte[] bytes = baos.toByteArray();
+            return Base64.encodeToString(bytes, Base64.DEFAULT);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
@@ -122,16 +134,35 @@ public class PostWriteActivity extends AppCompatActivity {
         Map<String, Object> post = new HashMap<>();
         post.put("title", title);
         post.put("content", content);
-        post.put("imageUrl", imageUrl);
+        post.put("imageUrl", imageUrl); // 여기에 Base64 암호화 글자가 들어갑니다!
         post.put("isAnonymous", isAnonymous);
-
-        // 🌟 3. 파이어스토어 데이터 바구니에 카테고리 정보도 쏙 넣어줍니다!
         post.put("category", category);
-
         post.put("recommendCount", 0);
         post.put("commentCount", 0);
-        post.put("timestamp", com.google.firebase.firestore.FieldValue.serverTimestamp());
+        post.put("timestamp", FieldValue.serverTimestamp());
 
+        String myUserId = CurrentUserProvider.INSTANCE.userId(this);
+        post.put("authorId", myUserId);
+
+        if (isAnonymous) {
+            post.put("authorName", "익명");
+            post.put("authorProfile", "");
+        } else {
+            String myName = CurrentUserProvider.INSTANCE.userName(this);
+            String myProfile = CurrentUserProvider.INSTANCE.profileImageData(this);
+
+            if (myName == null || myName.trim().isEmpty()) {
+                myName = "동네주민";
+            }
+
+            post.put("authorName", myName);
+            post.put("authorProfile", (myProfile != null) ? myProfile : "");
+        }
+
+        uploadToDb(post);
+    }
+
+    private void uploadToDb(Map<String, Object> post) {
         db.collection("posts").add(post)
                 .addOnSuccessListener(documentReference -> {
                     Toast.makeText(this, "글이 동네 소식에 올라갔어요!", Toast.LENGTH_SHORT).show();
