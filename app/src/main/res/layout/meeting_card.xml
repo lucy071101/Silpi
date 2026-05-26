@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cardRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="18dp"
+    android:background="@drawable/bg_meeting_card">
+
+    <LinearLayout
+        android:layout_width="86dp"
+        android:layout_height="110dp"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/txtMonth"
+            android:layout_width="70dp"
+            android:layout_height="28dp"
+            android:gravity="center"
+            android:text="4월"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:background="#7B68A8" />
+
+        <TextView
+            android:id="@+id/txtDay"
+            android:layout_width="70dp"
+            android:layout_height="54dp"
+            android:gravity="center"
+            android:text="05"
+            android:textColor="#FFFFFF"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:background="#7B68A8" />
+
+        <TextView
+            android:id="@+id/txtBadge"
+            android:layout_width="70dp"
+            android:layout_height="30dp"
+            android:gravity="center"
+            android:text="모집중"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:background="#34A853" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingLeft="20dp">
+
+        <TextView
+            android:id="@+id/txtTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#222222"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/txtTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#333333"
+            android:textSize="18sp"
+            android:layout_marginTop="10dp" />
+
+        <TextView
+            android:id="@+id/txtPeople"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#333333"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+</LinearLayout>

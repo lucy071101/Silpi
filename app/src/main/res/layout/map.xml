@@ -1,71 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="#FFFFFF">
 
     <LinearLayout
-        android:orientation="vertical"
-        android:padding="24dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="지도"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="#222222"
-            android:layout_marginBottom="20dp"/>
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
 
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="220dp"
+            android:layout_height="wrap_content"
+            android:text="지도"
             android:gravity="center"
-            android:text="지도 표시 영역\nGoogle Maps API 연결 예정"
-            android:textSize="20sp"
-            android:textColor="#555555"
-            android:background="#E0E0E0"
-            android:layout_marginBottom="20dp"/>
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#222222"
+            android:layout_marginBottom="24dp" />
+
+        <WebView
+            android:id="@+id/webMap"
+            android:layout_width="match_parent"
+            android:layout_height="320dp"
+            android:layout_marginBottom="24dp" />
 
         <Button
             android:id="@+id/btnCurrentLocation"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="64dp"
             android:text="현재 위치 확인"
+            android:textSize="22sp"
+            android:textStyle="bold"
             android:textColor="#FFFFFF"
-            android:backgroundTint="#4CAF50"/>
+            android:backgroundTint="#7B68A8"
+            android:layout_marginBottom="14dp" />
 
         <Button
             android:id="@+id/btnMeetingLocation"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="64dp"
             android:text="모임 위치 표시"
+            android:textSize="22sp"
+            android:textStyle="bold"
             android:textColor="#FFFFFF"
-            android:backgroundTint="#4CAF50"
-            android:layout_marginTop="12dp"/>
+            android:backgroundTint="#7B68A8"
+            android:layout_marginBottom="14dp" />
 
         <Button
             android:id="@+id/btnMeetingInfo"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="64dp"
             android:text="모임 정보 조회"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#4CAF50"
-            android:layout_marginTop="12dp"/>
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#7B68A8"
+            android:backgroundTint="#FFFFFF"
+            android:layout_marginBottom="20dp" />
 
         <TextView
             android:id="@+id/txtMapResult"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="버튼을 눌러 지도 기능을 확인하세요."
-            android:textSize="18sp"
+            android:text="버튼을 누르면 결과가 표시됩니다."
+            android:textSize="16sp"
             android:textColor="#333333"
-            android:background="#FFFFFF"
-            android:padding="16dp"
-            android:layout_marginTop="20dp"/>
+            android:padding="12dp" />
 
     </LinearLayout>
 </ScrollView>

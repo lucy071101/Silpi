@@ -2,65 +2,60 @@ package com.silpi.app;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
-
 import java.util.ArrayList;
 
 public class MeetingJoinActivity extends AppCompatActivity {
 
-    ArrayList<String> displayList = new ArrayList<>();
-    ArrayList<String[]> meetingList = new ArrayList<>();
+    EditText edtSearch;
+    Spinner spinnerFilter;
+    ListView listView;
+
+    ArrayList<String[]> allMeetings = new ArrayList<>();
+    ArrayList<String[]> filteredMeetings = new ArrayList<>();
+
+    String[] filters = {"전체", "등산", "식사", "산책", "카페", "바둑", "낚시"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.meeting_join);
 
-        ListView listView = findViewById(R.id.listView);
+        edtSearch = findViewById(R.id.edtSearch);
+        spinnerFilter = findViewById(R.id.spinnerFilter);
+        listView = findViewById(R.id.listView);
 
-        String savedMeetings = getSharedPreferences("meeting_data", MODE_PRIVATE)
-                .getString("meetings", "");
+        ArrayAdapter<String> filterAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, filters);
+        filterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerFilter.setAdapter(filterAdapter);
 
-        if (!savedMeetings.isEmpty()) {
-            String[] meetings = savedMeetings.split("¶");
+        loadMeetings();
+        applyFilter();
 
-            for (String meeting : meetings) {
-                String[] info = meeting.split("§", -1);
+        edtSearch.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { applyFilter(); }
+            @Override public void afterTextChanged(Editable s) {}
+        });
 
-                if (info.length >= 9) {
-                    meetingList.add(info);
-
-                    String title = info[0];
-                    String date = info[5];
-                    String time = info[6];
-
-                    displayList.add(title + "\n" + date + " " + time);
-                }
-            }
-        }
-
-        if (displayList.isEmpty()) {
-            displayList.add("생성된 모임이 없습니다.");
-        }
-
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<>(
-                        this,
-                        android.R.layout.simple_list_item_1,
-                        displayList
-                );
-
-        listView.setAdapter(adapter);
+        spinnerFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) { applyFilter(); }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
         listView.setOnItemClickListener((parent, view, position, id) -> {
-            if (meetingList.isEmpty()) return;
+            if (filteredMeetings.isEmpty()) return;
 
-            String[] info = meetingList.get(position);
+            String[] info = filteredMeetings.get(position);
 
             Intent intent = new Intent(MeetingJoinActivity.this, MeetingDetailActivity.class);
+            intent.putExtra("index", getOriginalIndex(info));
             intent.putExtra("title", info[0]);
             intent.putExtra("category", info[1]);
             intent.putExtra("people", info[2]);
@@ -70,8 +65,148 @@ public class MeetingJoinActivity extends AppCompatActivity {
             intent.putExtra("time", info[6]);
             intent.putExtra("guardian", info[7]);
             intent.putExtra("desc", info[8]);
+            intent.putExtra("current", getValue(info, 9, "0"));
+            intent.putExtra("joined", getValue(info, 10, "false"));
+            intent.putExtra("owner", getValue(info, 11, "true"));
+            intent.putExtra("placeLat", getValue(info, 12, ""));
+            intent.putExtra("placeLng", getValue(info, 13, ""));
 
             startActivity(intent);
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadMeetings();
+        applyFilter();
+    }
+
+    void loadMeetings() {
+        allMeetings.clear();
+
+        String savedMeetings = getSharedPreferences("meeting_data", MODE_PRIVATE)
+                .getString("meetings", "");
+
+        if (savedMeetings != null && savedMeetings.length() > 0) {
+            String[] meetings = savedMeetings.split("¶");
+
+            for (String meeting : meetings) {
+                String[] info = meeting.split("§", -1);
+                if (info.length >= 9) {
+                    allMeetings.add(normalize(info));
+                }
+            }
+        }
+    }
+
+    void applyFilter() {
+        filteredMeetings.clear();
+
+        String keyword = edtSearch.getText().toString().trim();
+        String selectedCategory = spinnerFilter.getSelectedItem().toString();
+
+        for (String[] info : allMeetings) {
+            String title = info[0];
+            String category = info[1];
+
+            if (!selectedCategory.equals("전체") && !category.equals(selectedCategory)) continue;
+            if (keyword.length() > 0 && !title.contains(keyword) && !category.contains(keyword)) continue;
+
+            // 거리 초과여도 목록에는 보여줌
+            boolean joined = Boolean.parseBoolean(getValue(info, 10, "false"));
+
+            if (joined) filteredMeetings.add(0, info);
+            else filteredMeetings.add(info);
+        }
+
+        listView.setAdapter(new MeetingCardAdapter(filteredMeetings));
+    }
+
+    String[] normalize(String[] arr) {
+        String[] result = new String[14];
+        for (int i = 0; i < result.length; i++) {
+            if (i < arr.length) result[i] = arr[i];
+            else if (i == 9) result[i] = "0";
+            else if (i == 10) result[i] = "false";
+            else if (i == 11) result[i] = "true";
+            else result[i] = "";
+        }
+        return result;
+    }
+
+    String getValue(String[] arr, int index, String defaultValue) {
+        if (arr.length > index && arr[index] != null) return arr[index];
+        return defaultValue;
+    }
+
+    int getOriginalIndex(String[] target) {
+        for (int i = 0; i < allMeetings.size(); i++) {
+            if (allMeetings.get(i) == target) return i;
+        }
+        return -1;
+    }
+
+    int parseIntSafe(String value) {
+        try { return Integer.parseInt(value); }
+        catch (Exception e) { return 0; }
+    }
+
+    class MeetingCardAdapter extends BaseAdapter {
+        ArrayList<String[]> meetings;
+
+        MeetingCardAdapter(ArrayList<String[]> meetings) {
+            this.meetings = meetings;
+        }
+
+        @Override public int getCount() { return meetings.size(); }
+        @Override public Object getItem(int position) { return meetings.get(position); }
+        @Override public long getItemId(int position) { return position; }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = LayoutInflater.from(MeetingJoinActivity.this)
+                        .inflate(R.layout.meeting_card, parent, false);
+            }
+
+            TextView txtMonth = convertView.findViewById(R.id.txtMonth);
+            TextView txtDay = convertView.findViewById(R.id.txtDay);
+            TextView txtBadge = convertView.findViewById(R.id.txtBadge);
+            TextView txtTitle = convertView.findViewById(R.id.txtTitle);
+            TextView txtTime = convertView.findViewById(R.id.txtTime);
+            TextView txtPeople = convertView.findViewById(R.id.txtPeople);
+
+            String[] info = meetings.get(position);
+
+            String title = info[0];
+            String date = info[5];
+            String time = info[6];
+
+            int maxPeople = parseIntSafe(info[2]);
+            int currentPeople = parseIntSafe(getValue(info, 9, "0"));
+            boolean joined = Boolean.parseBoolean(getValue(info, 10, "false"));
+
+            String month = "";
+            String day = "";
+
+            String[] dateParts = date.split("-");
+            if (dateParts.length >= 3) {
+                month = parseIntSafe(dateParts[1]) + "월";
+                day = dateParts[2];
+            }
+
+            txtMonth.setText(month);
+            txtDay.setText(day);
+            txtTitle.setText(title);
+            txtTime.setText("시간: " + time);
+            txtPeople.setText("인원: " + currentPeople + "/" + maxPeople + "명");
+
+            if (currentPeople >= maxPeople) txtBadge.setText("마감");
+            else if (joined) txtBadge.setText("참여중");
+            else txtBadge.setText("모집중");
+
+            return convertView;
+        }
     }
 }
