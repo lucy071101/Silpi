@@ -10,30 +10,38 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:background="@color/silphy_primary"
-        android:gravity="center_vertical"
         android:paddingHorizontal="15dp">
 
         <ImageView
             android:id="@+id/btn_cancel"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="9dp"
             android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
             android:contentDescription="취소"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
-            app:tint="#FFFFFF" /> <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="글 쓰기"
-        android:textColor="#FFFFFF"
-        android:textSize="22sp"
-        android:textStyle="bold" />
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="#FFFFFF" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="글 쓰기"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:layout_centerInParent="true" />
 
         <TextView
             android:id="@+id/btn_complete"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:gravity="center"
             android:enabled="false"
             android:text="완료"
             android:textColor="#CCCCCC"
@@ -44,20 +52,22 @@
     <LinearLayout
         android:id="@+id/layout_bottom_bar"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="64dp"
         android:layout_alignParentBottom="true"
         android:background="@color/silphy_bg_light"
-        android:elevation="4dp"
+        android:elevation="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="20dp">
 
         <ImageView
             android:id="@+id/btn_photo"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="6dp"
             android:contentDescription="사진 첨부"
             android:src="@android:drawable/ic_menu_camera"
+            android:background="?attr/selectableItemBackgroundBorderless"
             app:tint="@color/silphy_primary" />
 
         <View
@@ -73,7 +83,10 @@
             android:checked="true"
             android:text="익명"
             android:textColor="@color/silphy_text_main"
-            android:textSize="18sp" />
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:paddingStart="8dp"
+            android:paddingVertical="10dp" />
 
     </LinearLayout>
 
@@ -116,11 +129,12 @@
                 android:layout_marginTop="15dp"
                 android:background="@android:color/transparent"
                 android:gravity="top"
-                android:hint="동네 친구들과 자유롭게 얘기해보세요.\n(예: 바둑 두실 분?)"
+                android:hint="동네 친구들과 자유롭게 얘기해보세요."
                 android:minLines="10"
                 android:textColor="@color/silphy_text_main"
                 android:textColorHint="@color/silphy_text_hint"
                 android:textSize="20sp" />
+
             <ImageView
                 android:id="@+id/iv_preview"
                 android:layout_width="match_parent"

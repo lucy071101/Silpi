@@ -10,18 +10,22 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 
 public class PostListActivity extends AppCompatActivity {
 
     private TextView tvBoardTitle;
-    private LinearLayout btnNavPostList, btnNavGathering, btnNavChat, btnNavWrite;
+
+    // 🌟 1. 불필요해진 하단 바 변수들을 지우고, 상단으로 이사 온 글쓰기 버튼만 남겼습니다!
+    private LinearLayout btnWrite;
 
     private RecyclerView rvPostList;
     private PostAdapter postAdapter;
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    // 🌟 1. 현재 내가 들어와 있는 카테고리 이름을 기억할 저장소 (기본값 "바둑")
+    private ListenerRegistration postListListener;
+
     private String currentCategory = "바둑";
 
     @Override
@@ -32,27 +36,32 @@ public class PostListActivity extends AppCompatActivity {
         initViews();
         setupRecyclerView();
 
-        // 🌟 2. 이전 화면에서 어떤 게시판을 눌렀는지 확인하고 전역 변수에 저장합니다.
         String communityName = getIntent().getStringExtra("communityName");
         if (communityName != null) {
             currentCategory = communityName;
             tvBoardTitle.setText(currentCategory + " 게시판");
         }
 
-        // 하단 바 네비게이션 세팅 (currentCategory를 사용하기 위해 아래로 이동시켰습니다)
-        setupBottomNavigation();
+        // 🌟 2. 하단 바 세팅 대신, 상단 글쓰기 버튼 이벤트만 세팅합니다.
+        setupWriteButton();
 
-        // 파이어베이스에서 이 카테고리의 글들만 쏙쏙 골라옵니다.
         loadPosts(currentCategory);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (postListListener != null) {
+            postListListener.remove();
+        }
     }
 
     private void initViews() {
         tvBoardTitle = findViewById(R.id.tv_board_title);
-        btnNavPostList = findViewById(R.id.btn_nav_post_list);
-        btnNavGathering = findViewById(R.id.btn_nav_gathering);
-        btnNavChat = findViewById(R.id.btn_nav_chat);
-        btnNavWrite = findViewById(R.id.btn_nav_write);
         rvPostList = findViewById(R.id.rv_post_list);
+
+        // 🌟 3. 디자인 파일에서 새로 만든 상단 글쓰기 버튼(btn_write) 연결!
+        btnWrite = findViewById(R.id.btn_write);
 
         android.widget.ImageView btnBack = findViewById(R.id.btn_back);
         if (btnBack != null) {
@@ -67,7 +76,7 @@ public class PostListActivity extends AppCompatActivity {
     }
 
     private void loadPosts(String categoryName) {
-        db.collection("posts")
+        postListListener = db.collection("posts")
                 .whereEqualTo("category", categoryName)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
@@ -82,13 +91,9 @@ public class PostListActivity extends AppCompatActivity {
                 });
     }
 
-    private void setupBottomNavigation() {
-        btnNavPostList.setOnClickListener(v -> Toast.makeText(this, "현재 게시글 목록입니다.", Toast.LENGTH_SHORT).show());
-        btnNavGathering.setOnClickListener(v -> Toast.makeText(this, "모임 상세 정보 페이지 (준비 중)", Toast.LENGTH_SHORT).show());
-        btnNavChat.setOnClickListener(v -> Toast.makeText(this, "채팅방으로 이동 (다른 팀원 파트)", Toast.LENGTH_SHORT).show());
-
-        btnNavWrite.setOnClickListener(v -> {
-            // 🌟 3. 글쓰기 화면을 켤 때, "지금 무슨 게시판인지" 카테고리 정보를 짐 가방에 싸서 보냅니다!
+    // 🌟 4. 쓸모없는 클릭 이벤트들 지우고, 글쓰기 화면으로 넘어가는 기능만 깔끔하게 남겼습니다.
+    private void setupWriteButton() {
+        btnWrite.setOnClickListener(v -> {
             Intent intent = new Intent(PostListActivity.this, PostWriteActivity.class);
             intent.putExtra("category", currentCategory);
             startActivity(intent);
