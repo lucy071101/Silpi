@@ -30,8 +30,7 @@ public class MeetingCreateActivity extends AppCompatActivity {
 
     String[] categories = {"등산", "식사", "산책", "카페", "바둑", "낚시"};
 
-    private static final String KAKAO_JS_KEY = "7cb014f8b57539042d4166b4548557ef";
-
+    private static final String KAKAO_JS_KEY = BuildConfig.KAKAO_JS_KEY;
     boolean placeChecked = false;
     String checkedPlace = "";
     String placeLat = "";

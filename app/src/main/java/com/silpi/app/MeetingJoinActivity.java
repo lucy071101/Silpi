@@ -20,7 +20,7 @@ public class MeetingJoinActivity extends AppCompatActivity {
     ArrayList<String[]> allMeetings = new ArrayList<>();
     ArrayList<String[]> filteredMeetings = new ArrayList<>();
 
-    String[] filters = {"전체", "등산", "식사", "산책", "카페", "바둑", "낚시"};
+    String[] filters = {"전체", "참여중", "등산", "식사", "산책", "카페", "바둑", "낚시"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,12 +109,15 @@ public class MeetingJoinActivity extends AppCompatActivity {
         for (String[] info : allMeetings) {
             String title = info[0];
             String category = info[1];
-
-            if (!selectedCategory.equals("전체") && !category.equals(selectedCategory)) continue;
-            if (keyword.length() > 0 && !title.contains(keyword) && !category.contains(keyword)) continue;
-
-            // 거리 초과여도 목록에는 보여줌
             boolean joined = Boolean.parseBoolean(getValue(info, 10, "false"));
+
+            if (selectedCategory.equals("참여중") && !joined) continue;
+
+            if (!selectedCategory.equals("전체")
+                    && !selectedCategory.equals("참여중")
+                    && !category.equals(selectedCategory)) continue;
+
+            if (keyword.length() > 0 && !title.contains(keyword) && !category.contains(keyword)) continue;
 
             if (joined) filteredMeetings.add(0, info);
             else filteredMeetings.add(info);

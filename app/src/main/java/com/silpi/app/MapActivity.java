@@ -16,11 +16,10 @@ import java.util.Locale;
 public class MapActivity extends AppCompatActivity {
 
     WebView webMap;
-    Button btnCurrentLocation, btnMeetingLocation, btnMeetingInfo;
+    Button btnCurrentLocation, btnMeetingLocation, btnJoinedMeetingLocation, btnMeetingInfo;
     TextView txtMapResult;
 
-    private static final String KAKAO_JS_KEY = "7cb014f8b57539042d4166b4548557ef";
-
+    private static final String KAKAO_JS_KEY = BuildConfig.KAKAO_JS_KEY;
     private static final double CURRENT_LAT = 37.6425;
     private static final double CURRENT_LNG = 127.1066;
 
@@ -32,6 +31,7 @@ public class MapActivity extends AppCompatActivity {
         webMap = findViewById(R.id.webMap);
         btnCurrentLocation = findViewById(R.id.btnCurrentLocation);
         btnMeetingLocation = findViewById(R.id.btnMeetingLocation);
+        btnJoinedMeetingLocation = findViewById(R.id.btnJoinedMeetingLocation);
         btnMeetingInfo = findViewById(R.id.btnMeetingInfo);
         txtMapResult = findViewById(R.id.txtMapResult);
 
@@ -51,7 +51,7 @@ public class MapActivity extends AppCompatActivity {
                 null
         );
 
-        webMap.postDelayed(this::showDefaultMap, 2500);
+        webMap.postDelayed(this::showAllMeetings, 2500);
 
         btnCurrentLocation.setOnClickListener(v -> {
             webMap.evaluateJavascript("focusCurrentLocation();", null);
@@ -60,8 +60,13 @@ public class MapActivity extends AppCompatActivity {
         });
 
         btnMeetingLocation.setOnClickListener(v -> {
-            showDefaultMap();
-            Toast.makeText(this, "모임 위치 표시", Toast.LENGTH_SHORT).show();
+            showAllMeetings();
+            Toast.makeText(this, "전체 모임 표시", Toast.LENGTH_SHORT).show();
+        });
+
+        btnJoinedMeetingLocation.setOnClickListener(v -> {
+            showJoinedMeetings();
+            Toast.makeText(this, "참여중 모임 표시", Toast.LENGTH_SHORT).show();
         });
 
         btnMeetingInfo.setOnClickListener(v -> {
@@ -70,13 +75,19 @@ public class MapActivity extends AppCompatActivity {
         });
     }
 
-    private void showDefaultMap() {
-        String markersJson = getMeetingMarkersJson();
-        webMap.evaluateJavascript("showDefaultMap(" + markersJson + ");", null);
-        txtMapResult.setText("현재 위치와 생성된 모든 모임 위치를 표시했습니다.");
+    private void showAllMeetings() {
+        String markersJson = getMeetingMarkersJson(false);
+        webMap.evaluateJavascript("showMeetings(" + markersJson + ");", null);
+        txtMapResult.setText("전체 모임 위치를 표시했습니다.\n파란색: 전체 모임 / 초록색: 참여중 모임 / 빨간색: 현재 위치");
     }
 
-    private String getMeetingMarkersJson() {
+    private void showJoinedMeetings() {
+        String markersJson = getMeetingMarkersJson(true);
+        webMap.evaluateJavascript("showMeetings(" + markersJson + ");", null);
+        txtMapResult.setText("참여중인 모임만 표시했습니다.\n초록색: 참여중 모임 / 빨간색: 현재 위치");
+    }
+
+    private String getMeetingMarkersJson(boolean onlyJoined) {
         String savedMeetings = getSharedPreferences("meeting_data", MODE_PRIVATE)
                 .getString("meetings", "");
 
@@ -96,10 +107,12 @@ public class MapActivity extends AppCompatActivity {
                     String time = info[6];
 
                     double limitKm = parseDoubleSafe(info[4]);
+                    boolean joined = Boolean.parseBoolean(getValue(info, 10, "false"));
                     double lat = parseDoubleSafe(info[12]);
                     double lng = parseDoubleSafe(info[13]);
 
                     if (lat == 0 || lng == 0) continue;
+                    if (onlyJoined && !joined) continue;
 
                     double distanceKm = calculateDistanceKm(CURRENT_LAT, CURRENT_LNG, lat, lng);
                     String state = distanceKm <= limitKm ? "참여 가능" : "거리 초과";
@@ -115,7 +128,8 @@ public class MapActivity extends AppCompatActivity {
                             .append("\"lng\":").append(lng).append(",")
                             .append("\"distance\":\"").append(String.format(Locale.US, "%.2f", distanceKm)).append("\",")
                             .append("\"limit\":\"").append(String.format(Locale.US, "%.1f", limitKm)).append("\",")
-                            .append("\"state\":\"").append(state).append("\"")
+                            .append("\"state\":\"").append(state).append("\",")
+                            .append("\"joined\":").append(joined)
                             .append("}");
 
                     first = false;
@@ -135,15 +149,19 @@ public class MapActivity extends AppCompatActivity {
             return "생성된 모임이 없습니다.";
         }
 
-        StringBuilder result = new StringBuilder("생성된 모임 정보\n\n");
+        StringBuilder joinedResult = new StringBuilder();
+        StringBuilder normalResult = new StringBuilder();
+
         String[] meetings = savedMeetings.split("¶");
         int count = 0;
+        int joinedCount = 0;
 
         for (String meeting : meetings) {
             String[] info = meeting.split("§", -1);
 
             if (info.length >= 14) {
                 double limitKm = parseDoubleSafe(info[4]);
+                boolean joined = Boolean.parseBoolean(getValue(info, 10, "false"));
                 double lat = parseDoubleSafe(info[12]);
                 double lng = parseDoubleSafe(info[13]);
 
@@ -152,23 +170,33 @@ public class MapActivity extends AppCompatActivity {
                 double distanceKm = calculateDistanceKm(CURRENT_LAT, CURRENT_LNG, lat, lng);
                 String state = distanceKm <= limitKm ? "참여 가능" : "거리 초과";
 
-                count++;
+                StringBuilder item = new StringBuilder();
 
-                result.append(count).append(". ").append(info[0]).append("\n")
+                if (joined) {
+                    joinedCount++;
+                    item.append("★ [참여중] ");
+                } else {
+                    count++;
+                    item.append(count).append(". ");
+                }
+
+                item.append(info[0]).append("\n")
                         .append("장소: ").append(info[3]).append("\n")
-                        .append("날짜: ").append(info[5]).append("\n")
-                        .append("시간: ").append(info[6]).append("\n")
-                        .append("현재 위치와 거리: ").append(String.format(Locale.US, "%.2f", distanceKm)).append("km\n")
-                        .append("제한 거리: ").append(limitKm).append("km\n")
+                        .append("시간: ").append(info[5]).append(" ").append(info[6]).append("\n")
+                        .append("거리: ").append(String.format(Locale.US, "%.2f", distanceKm)).append("km")
+                        .append(" / 제한: ").append(String.format(Locale.US, "%.1f", limitKm)).append("km\n")
                         .append("상태: ").append(state).append("\n\n");
+
+                if (joined) joinedResult.append(item);
+                else normalResult.append(item);
             }
         }
 
-        if (count == 0) {
+        if (joinedResult.length() == 0 && normalResult.length() == 0) {
             return "좌표가 저장된 모임이 없습니다.\n장소 확인 후 새 모임을 생성해주세요.";
         }
 
-        return result.toString();
+        return "모임 정보\n\n" + joinedResult + normalResult;
     }
 
     private String makeMapHtml() {
@@ -180,8 +208,14 @@ public class MapActivity extends AppCompatActivity {
                 "<style>" +
                 "html, body { width:100%; height:100%; margin:0; padding:0; overflow:hidden; }" +
                 "#map { width:100%; height:100vh; background:#dff3f0; }" +
-                ".redMarker { width:22px; height:22px; background:red; border-radius:50%; border:3px solid white; box-shadow:0 0 6px rgba(0,0,0,0.5); }" +
-                ".blueMarker { width:20px; height:20px; background:#1E88E5; border-radius:50%; border:3px solid white; box-shadow:0 0 6px rgba(0,0,0,0.5); }" +
+                ".redMarker { width:24px; height:24px; background:#E53935; border-radius:50%; border:4px solid white; box-shadow:0 0 7px rgba(0,0,0,0.45); }" +
+                ".blueMarker { width:22px; height:22px; background:#1E88E5; border-radius:50%; border:3px solid white; box-shadow:0 0 7px rgba(0,0,0,0.45); cursor:pointer; }" +
+                ".greenMarker { width:22px; height:22px; background:#2E7D32; border-radius:50%; border:3px solid white; box-shadow:0 0 7px rgba(0,0,0,0.45); cursor:pointer; }" +
+                ".bubble { min-width:150px; max-width:210px; background:white; border-radius:12px; padding:10px 12px; box-shadow:0 2px 8px rgba(0,0,0,0.25); font-family:sans-serif; }" +
+                ".bubbleTitle { font-size:15px; font-weight:bold; color:#222; margin-bottom:5px; line-height:1.25; }" +
+                ".bubbleJoined { font-size:13px; font-weight:bold; color:#2E7D32; margin-bottom:4px; }" +
+                ".bubbleText { font-size:13px; color:#444; line-height:1.35; }" +
+                ".bubbleState { font-size:13px; font-weight:bold; margin-top:5px; }" +
                 "</style>" +
                 "</head>" +
                 "<body>" +
@@ -190,6 +224,8 @@ public class MapActivity extends AppCompatActivity {
                 "var map = null;" +
                 "var currentOverlay = null;" +
                 "var meetingOverlays = [];" +
+                "var infoOverlay = null;" +
+                "var meetingData = [];" +
 
                 "kakao.maps.load(function() {" +
                 "var container = document.getElementById('map');" +
@@ -210,33 +246,72 @@ public class MapActivity extends AppCompatActivity {
                 "function clearMeetingMarkers() {" +
                 "for (var i = 0; i < meetingOverlays.length; i++) meetingOverlays[i].setMap(null);" +
                 "meetingOverlays = [];" +
+                "closeBubble();" +
                 "}" +
 
-                "function showDefaultMap(meetings) {" +
+                "function closeBubble() {" +
+                "if (infoOverlay != null) {" +
+                "infoOverlay.setMap(null);" +
+                "infoOverlay = null;" +
+                "}" +
+                "}" +
+
+                "function showMeetings(meetings) {" +
                 "if (!map) return;" +
+                "meetingData = meetings || [];" +
                 "var bounds = new kakao.maps.LatLngBounds();" +
                 "var currentPos = drawCurrentMarker();" +
                 "bounds.extend(currentPos);" +
                 "clearMeetingMarkers();" +
 
-                "if (meetings && meetings.length > 0) {" +
-                "for (var i = 0; i < meetings.length; i++) {" +
-                "var m = meetings[i];" +
+                "if (meetingData.length > 0) {" +
+                "for (var i = 0; i < meetingData.length; i++) {" +
+                "var m = meetingData[i];" +
                 "var pos = new kakao.maps.LatLng(m.lat, m.lng);" +
-                "var overlay = new kakao.maps.CustomOverlay({ position: pos, content: '<div class=\"blueMarker\"></div>', xAnchor: 0.5, yAnchor: 0.5 });" +
+                "var markerClass = m.joined ? 'greenMarker' : 'blueMarker';" +
+                "var content = '<div class=\"' + markerClass + '\" onclick=\"showBubble(' + i + ')\"></div>';" +
+                "var overlay = new kakao.maps.CustomOverlay({ position: pos, content: content, xAnchor: 0.5, yAnchor: 0.5 });" +
                 "overlay.setMap(map);" +
                 "meetingOverlays.push(overlay);" +
                 "bounds.extend(pos);" +
                 "}" +
                 "map.setBounds(bounds);" +
+                "kakao.maps.event.addListener(map, 'click', function() {" +
+                "closeBubble();" +
+                "});" +
                 "} else {" +
                 "map.setCenter(currentPos);" +
                 "map.setLevel(4);" +
                 "}" +
                 "}" +
 
+                "function showBubble(index) {" +
+                "var m = meetingData[index];" +
+                "if (!m) return;" +
+                "closeBubble();" +
+                "var pos = new kakao.maps.LatLng(m.lat, m.lng);" +
+                "var joinedHtml = m.joined ? '<div class=\"bubbleJoined\">참여중</div>' : '';" +
+                "var stateColor = m.state === '참여 가능' ? '#2E7D32' : '#D32F2F';" +
+                "var html = '<div class=\"bubble\">' +" +
+                "joinedHtml +" +
+                "'<div class=\"bubbleTitle\">' + escapeHtml(m.title) + '</div>' +" +
+                "'<div class=\"bubbleText\">' + escapeHtml(m.place) + '</div>' +" +
+                "'<div class=\"bubbleText\">' + escapeHtml(m.date) + ' ' + escapeHtml(m.time) + '</div>' +" +
+                "'<div class=\"bubbleState\" style=\"color:' + stateColor + '\">' + m.distance + 'km · ' + escapeHtml(m.state) + '</div>' +" +
+                "'</div>';" +
+                "infoOverlay = new kakao.maps.CustomOverlay({ position: pos, content: html, xAnchor: 0.5, yAnchor: 1.25 });" +
+                "infoOverlay.setMap(map);" +
+                "map.panTo(pos);" +
+                "}" +
+
+                "function escapeHtml(text) {" +
+                "if (!text) return '';" +
+                "return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#039;');" +
+                "}" +
+
                 "function focusCurrentLocation() {" +
                 "if (!map) return;" +
+                "closeBubble();" +
                 "var currentPos = drawCurrentMarker();" +
                 "map.setCenter(currentPos);" +
                 "map.setLevel(4);" +
@@ -264,12 +339,24 @@ public class MapActivity extends AppCompatActivity {
     }
 
     private double parseDoubleSafe(String value) {
-        try { return Double.parseDouble(value); }
-        catch (Exception e) { return 0; }
+        try {
+            return Double.parseDouble(value);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private String getValue(String[] arr, int index, String defaultValue) {
+        if (arr.length > index && arr[index] != null) return arr[index];
+        return defaultValue;
     }
 
     private String escapeJson(String text) {
         if (text == null) return "";
-        return text.replace("\\", "\\\\").replace("\"", "\\\"");
+        return text
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", " ")
+                .replace("\r", " ");
     }
 }
