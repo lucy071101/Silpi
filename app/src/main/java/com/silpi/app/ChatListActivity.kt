@@ -16,6 +16,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
@@ -40,6 +41,7 @@ class ChatListActivity : AppCompatActivity() {
     private var chatRoomsListener: ListenerRegistration? = null
 
     private lateinit var myUserId: String
+    private lateinit var myUserName: String
     private var isSearchMode = false
     private var searchKeyword = ""
 
@@ -49,6 +51,7 @@ class ChatListActivity : AppCompatActivity() {
 
         db = FirebaseFirestore.getInstance()
         myUserId = CurrentUserProvider.userId(this)
+        myUserName = CurrentUserProvider.userName(this)
 
         initViews()
         setupRecyclerView()
@@ -247,6 +250,9 @@ class ChatListActivity : AppCompatActivity() {
 
     private fun exitChatRoom(chatRoom: ChatRoom) {
         val roomRef = db.collection("chats").document(chatRoom.roomId)
+        val exitMessageRef = roomRef.collection("messages").document()
+        val exitMessage = "${myUserName}님이 나갔습니다."
+        val exitMessageTime = System.currentTimeMillis()
 
         db.runTransaction { transaction ->
             val document = transaction.get(roomRef)
@@ -265,13 +271,33 @@ class ChatListActivity : AppCompatActivity() {
             if (updatedParticipants.isEmpty()) {
                 transaction.delete(roomRef)
             } else {
+                updatedParticipants.forEach { userId ->
+                    updatedUnreadCount[userId] = (updatedUnreadCount[userId] ?: 0) + 1
+                }
+
+                transaction.set(
+                        exitMessageRef,
+                        mapOf(
+                                "message" to exitMessage,
+                                "senderId" to "",
+                                "senderName" to "",
+                                "imageUrl" to "",
+                                "imageData" to "",
+                                "messageType" to "system",
+                                "timestamp" to exitMessageTime,
+                                "sentAt" to FieldValue.serverTimestamp()
+                        )
+                )
                 transaction.update(
                         roomRef,
                         mapOf(
                                 "participants" to updatedParticipants,
                                 "participantNames" to updatedParticipantNames,
                                 "unreadCount" to updatedUnreadCount,
-                                "searchNames" to updatedSearchNames
+                                "searchNames" to updatedSearchNames,
+                                "lastMessage" to exitMessage,
+                                "lastMessageTime" to exitMessageTime,
+                                "lastMessageSentAt" to FieldValue.serverTimestamp()
                         )
                 )
             }

@@ -72,30 +72,58 @@
                 android:scaleType="center"
                 android:src="@drawable/ic_chat_phone" />
 
-            <ImageButton
-                android:id="@+id/buttonCall"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+            <LinearLayout
+                android:layout_width="52dp"
+                android:layout_height="match_parent"
                 android:layout_marginEnd="8dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="Search"
-                android:minWidth="48dp"
-                android:minHeight="48dp"
-                android:padding="6dp"
-                android:scaleType="center"
-                android:src="@drawable/ic_chat_search" />
+                android:gravity="center"
+                android:orientation="vertical">
 
-            <ImageButton
-                android:id="@+id/buttonMore"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="More"
-                android:minWidth="48dp"
-                android:minHeight="48dp"
-                android:padding="6dp"
-                android:scaleType="center"
-                android:src="@drawable/ic_chat_menu" />
+                <ImageButton
+                    android:id="@+id/buttonCall"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="Search"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:padding="6dp"
+                    android:scaleType="center"
+                    android:src="@drawable/ic_chat_search" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="검색"
+                    android:textColor="#324052"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="52dp"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/buttonMore"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="More"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:padding="6dp"
+                    android:scaleType="center"
+                    android:src="@drawable/ic_chat_menu" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="요약"
+                    android:textColor="#324052"
+                    android:textSize="12sp" />
+            </LinearLayout>
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -166,6 +194,40 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <include layout="@layout/dialog_chat_room_menu" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/layoutImagePreviewOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#CC000000"
+        android:clickable="true"
+        android:elevation="20dp"
+        android:focusable="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/imagePreview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="Preview image"
+            android:padding="24dp"
+            android:scaleType="fitCenter" />
+
+        <ImageButton
+            android:id="@+id/buttonCloseImagePreview"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="16dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="Close"
+            android:padding="10dp"
+            android:src="@drawable/ic_chat_close_bold" />
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

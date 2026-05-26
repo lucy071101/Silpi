@@ -1,9 +1,11 @@
-package com.silpi.app
+﻿package com.silpi.app
 
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputFilter
 import android.text.TextWatcher
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
@@ -24,14 +26,18 @@ class ProfileActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_FIRST_SETUP = "extra_first_setup"
         const val EXTRA_PROFILE_LOAD_FAILED = "extra_profile_load_failed"
+        private const val BIO_MAX_LENGTH = 90
+        private const val BIO_MAX_LINES = 6
     }
 
-    private lateinit var buttonBack: ImageButton
+    private lateinit var buttonBack: TextView
+    private lateinit var buttonBackIcon: ImageButton
     private lateinit var buttonSave: TextView
     private lateinit var imageProfile: ImageView
     private lateinit var editTextName: EditText
     private lateinit var editTextCity: EditText
     private lateinit var editTextBio: EditText
+    private lateinit var textViewBioLimit: TextView
     private lateinit var textViewEditHint: TextView
     private lateinit var textViewInterests: TextView
     private lateinit var buttonSelectInterests: TextView
@@ -45,6 +51,7 @@ class ProfileActivity : AppCompatActivity() {
     private var isFirstSetup: Boolean = false
     private var isEditing: Boolean = false
     private var profileLoadFailed: Boolean = false
+    private var isAdjustingBioText: Boolean = false
 
     private val interestOptions = listOf("게임", "독서", "음악 감상", "카페 탐방", "러닝", "영화", "맛집", "여행", "운동", "공부")
     private val selectedInterests = mutableListOf<String>()
@@ -75,11 +82,26 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun initViews() {
         buttonBack = findViewById(R.id.buttonBack)
+        buttonBackIcon = findViewById(R.id.buttonBackIcon)
         buttonSave = findViewById(R.id.buttonSave)
         imageProfile = findViewById(R.id.imageProfile)
         editTextName = findViewById(R.id.editTextName)
         editTextCity = findViewById(R.id.editTextCity)
         editTextBio = findViewById(R.id.editTextBio)
+        textViewBioLimit = findViewById(R.id.textViewBioLimit)
+        editTextBio.filters = arrayOf(InputFilter.LengthFilter(BIO_MAX_LENGTH))
+        editTextBio.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                updateBioLimitText()
+                if (!isAdjustingBioText) {
+                    editTextBio.post { trimBioToVisibleLines() }
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) = Unit
+        })
         textViewEditHint = findViewById(R.id.textViewEditHint)
         textViewInterests = findViewById(R.id.textViewInterests)
         buttonSelectInterests = findViewById(R.id.buttonSelectInterests)
@@ -98,6 +120,7 @@ class ProfileActivity : AppCompatActivity() {
 
         editTextCity.setText(CurrentUserProvider.city(this))
         editTextBio.setText(CurrentUserProvider.bio(this))
+        updateBioLimitText()
 
         selectedInterests.clear()
         if (!isFirstSetup) {
@@ -112,6 +135,7 @@ class ProfileActivity : AppCompatActivity() {
     private fun setupClickListeners() {
         if (profileLoadFailed) {
             buttonBack.visibility = View.INVISIBLE
+            buttonBackIcon.visibility = View.INVISIBLE
         }
 
         if (profileLoadFailed) {
@@ -119,12 +143,11 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         buttonBack.setOnClickListener {
-            if (isFirstSetup) {
-                signOutAndMoveToLogin()
-                return@setOnClickListener
-            }
+            handleBackPressed()
+        }
 
-            finish()
+        buttonBackIcon.setOnClickListener {
+            handleBackPressed()
         }
 
         imageProfile.setOnClickListener {
@@ -166,14 +189,22 @@ class ProfileActivity : AppCompatActivity() {
         buttonRetryProfileLoad.setOnClickListener {
             retryProfileLoad()
         }
+
     }
 
     private fun applyEditMode() {
         if (profileLoadFailed) return
 
+        val showCancelButton = isEditing && !isFirstSetup
+        buttonBack.visibility = if (showCancelButton) View.VISIBLE else View.GONE
+        buttonBackIcon.visibility = if (showCancelButton) View.GONE else View.VISIBLE
+        buttonBack.text = "취소"
+        buttonBack.setTextColor(0xFFFFFFFF.toInt())
+        buttonBack.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f)
+        buttonBack.setBackgroundResource(R.drawable.bg_profile_save_button)
         buttonSave.text = if (isEditing) "저장" else "수정"
-        buttonSave.setTextColor(if (isEditing) 0xFFFFFFFF.toInt() else 0xFF162033.toInt())
-        buttonSave.setBackgroundResource(if (isEditing) R.drawable.bg_profile_save_button else R.drawable.bg_edit_text_clear)
+        buttonSave.setTextColor(0xFFFFFFFF.toInt())
+        buttonSave.setBackgroundResource(R.drawable.bg_profile_save_button)
 
         imageProfile.isEnabled = isEditing
         textViewEditHint.visibility = if (isEditing) View.VISIBLE else View.GONE
@@ -200,6 +231,27 @@ class ProfileActivity : AppCompatActivity() {
         editText.isLongClickable = editable
     }
 
+    private fun trimBioToVisibleLines() {
+        if (isAdjustingBioText || editTextBio.lineCount <= BIO_MAX_LINES) return
+
+        isAdjustingBioText = true
+        val editable = editTextBio.text
+        while (editTextBio.lineCount > BIO_MAX_LINES && editable.isNotEmpty()) {
+            editable.delete(editable.length - 1, editable.length)
+            editTextBio.measure(
+                    View.MeasureSpec.makeMeasureSpec(editTextBio.width, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            )
+        }
+        editTextBio.setSelection(editTextBio.text.length)
+        isAdjustingBioText = false
+        updateBioLimitText()
+    }
+
+    private fun updateBioLimitText() {
+        textViewBioLimit.text = "${editTextBio.text.length} / ${BIO_MAX_LENGTH}자"
+    }
+
     private fun updateEditFieldStyle(editText: EditText, editable: Boolean) {
         editText.setBackgroundResource(
                 if (editable) R.drawable.bg_profile_edit_field else R.drawable.bg_edit_text_clear
@@ -218,6 +270,7 @@ class ProfileActivity : AppCompatActivity() {
         val searchEditText = dialogView.findViewById<EditText>(R.id.editTextInterestSearch)
         val optionGrid = dialogView.findViewById<GridLayout>(R.id.gridInterestOptions)
         val confirmButton = dialogView.findViewById<TextView>(R.id.buttonConfirmInterest)
+        val closeButton = dialogView.findViewById<ImageButton>(R.id.buttonCloseInterest)
 
         fun bindInterestOptions(keyword: String = "") {
             optionGrid.removeAllViews()
@@ -275,6 +328,10 @@ class ProfileActivity : AppCompatActivity() {
             selectedInterests.clear()
             selectedInterests.addAll(tempSelectedInterests)
             updateInterestText()
+            dialog.dismiss()
+        }
+
+        closeButton.setOnClickListener {
             dialog.dismiss()
         }
 
@@ -350,12 +407,27 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
+        handleBackPressed()
+    }
+
+    private fun handleBackPressed() {
+        if (isEditing && !isFirstSetup) {
+            cancelEditMode()
+            return
+        }
+
         if (isFirstSetup) {
             signOutAndMoveToLogin()
             return
         }
 
-        super.onBackPressed()
+        finish()
+    }
+
+    private fun cancelEditMode() {
+        isEditing = false
+        bindProfile()
+        applyEditMode()
     }
 
     private fun signOutAndMoveToLogin() {

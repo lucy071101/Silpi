@@ -45,10 +45,12 @@
         android:layout_height="118dp"
         android:background="#FFFFFF"
         android:clipToPadding="false"
+        android:fadeScrollbars="false"
         android:paddingStart="16dp"
         android:paddingTop="12dp"
         android:paddingEnd="16dp"
         android:paddingBottom="8dp"
+        android:scrollbars="horizontal"
         android:visibility="gone" />
 
     <EditText
@@ -86,7 +88,9 @@
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:layout_weight="1"
-        android:background="#FFFFFF" />
+        android:background="#FFFFFF"
+        android:fadeScrollbars="false"
+        android:scrollbars="vertical" />
 
     <Button
         android:id="@+id/btnCreateRoom"

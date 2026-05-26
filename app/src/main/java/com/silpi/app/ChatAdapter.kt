@@ -13,14 +13,16 @@ import androidx.recyclerview.widget.RecyclerView
 class ChatAdapter(
         private val messageList: MutableList<ChatMessage>,
         private val myUserId: String,
-        private val profileImagesByUserId: Map<String, String>
+        private val profileImagesByUserId: Map<String, String>,
+        private val onImageClick: (String) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var lastAnimatedPosition = -1
 
     companion object {
-        private const val VIEW_TYPE_LEFT = 0
-        private const val VIEW_TYPE_RIGHT = 1
+        private const val VIEW_TYPE_SYSTEM = 0
+        private const val VIEW_TYPE_LEFT = 1
+        private const val VIEW_TYPE_RIGHT = 2
     }
 
     class LeftViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -37,7 +39,15 @@ class ChatAdapter(
         val textViewTimeRight: TextView = itemView.findViewById(R.id.textViewTimeRight)
     }
 
+    class SystemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val textViewSystemMessage: TextView = itemView.findViewById(R.id.textViewSystemMessage)
+    }
+
     override fun getItemViewType(position: Int): Int {
+        if (messageList[position].messageType == "system") {
+            return VIEW_TYPE_SYSTEM
+        }
+
         return if (messageList[position].senderId == myUserId) {
             VIEW_TYPE_RIGHT
         } else {
@@ -46,14 +56,22 @@ class ChatAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        return if (viewType == VIEW_TYPE_RIGHT) {
-            val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_chat_right, parent, false)
-            RightViewHolder(view)
-        } else {
-            val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_chat_left, parent, false)
-            LeftViewHolder(view)
+        return when (viewType) {
+            VIEW_TYPE_SYSTEM -> {
+                val view = LayoutInflater.from(parent.context)
+                        .inflate(R.layout.item_chat_system, parent, false)
+                SystemViewHolder(view)
+            }
+            VIEW_TYPE_RIGHT -> {
+                val view = LayoutInflater.from(parent.context)
+                        .inflate(R.layout.item_chat_right, parent, false)
+                RightViewHolder(view)
+            }
+            else -> {
+                val view = LayoutInflater.from(parent.context)
+                        .inflate(R.layout.item_chat_left, parent, false)
+                LeftViewHolder(view)
+            }
         }
     }
 
@@ -62,6 +80,11 @@ class ChatAdapter(
         if (currentPosition == RecyclerView.NO_POSITION) return
 
         val chatMessage = messageList[currentPosition]
+        if (holder is SystemViewHolder) {
+            holder.textViewSystemMessage.text = chatMessage.message
+            return
+        }
+
         val formattedTime = formatTimestamp(chatMessage.timestamp)
 
         val isSameSenderAsPrevious =
@@ -145,8 +168,12 @@ class ChatAdapter(
             val imageBytes = Base64.decode(chatMessage.imageData, Base64.DEFAULT)
             val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
             imageView.setImageBitmap(bitmap)
+            imageView.setOnClickListener {
+                onImageClick(chatMessage.imageData)
+            }
         } else {
             imageView.visibility = View.GONE
+            imageView.setOnClickListener(null)
             textView.visibility = View.VISIBLE
             textView.text = chatMessage.message
         }
