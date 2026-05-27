@@ -2,6 +2,7 @@ package com.silpi.app;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
@@ -19,12 +20,17 @@ import android.webkit.WebChromeClient;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class MeetingCreateActivity extends AppCompatActivity {
 
     Spinner spinnerCategory;
-    EditText edtPeople, edtPlace, edtDistance, edtDate, edtTime, edtDesc;
+    TextView edtPeople;
+    EditText edtPlace, edtDistance, edtDate, edtTime, edtDesc;
     CheckBox chkGuardian;
-    Button btnCreate, btnCheckPlace;
+    Button btnCreate, btnCheckPlace, btnMinusPeople, btnPlusPeople;
     TextView txtResult, txtPlaceCheck;
     WebView webPlaceSearch;
 
@@ -35,6 +41,8 @@ public class MeetingCreateActivity extends AppCompatActivity {
     String checkedPlace = "";
     String placeLat = "";
     String placeLng = "";
+
+    int peopleCount = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,9 +59,45 @@ public class MeetingCreateActivity extends AppCompatActivity {
         chkGuardian = findViewById(R.id.chkGuardian);
         btnCreate = findViewById(R.id.btnCreate);
         btnCheckPlace = findViewById(R.id.btnCheckPlace);
+        btnMinusPeople = findViewById(R.id.btnMinusPeople);
+        btnPlusPeople = findViewById(R.id.btnPlusPeople);
         txtResult = findViewById(R.id.txtResult);
         txtPlaceCheck = findViewById(R.id.txtPlaceCheck);
         webPlaceSearch = findViewById(R.id.webPlaceSearch);
+
+        edtPeople.setText(String.valueOf(peopleCount));
+
+        edtDistance.setFilters(new InputFilter[]{
+                (source, start, end, dest, dstart, dend) -> {
+                    for (int i = start; i < end; i++) {
+                        char c = source.charAt(i);
+
+                        if (!Character.isDigit(c) && c != '.') {
+                            return "";
+                        }
+
+                        if (c == '.' && dest.toString().contains(".")) {
+                            return "";
+                        }
+                    }
+                    return null;
+                }
+        });
+
+        btnMinusPeople.setOnClickListener(v -> {
+            if (peopleCount <= 2) {
+                Toast.makeText(this, "최소 2명부터 설정 가능합니다.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            peopleCount--;
+            edtPeople.setText(String.valueOf(peopleCount));
+        });
+
+        btnPlusPeople.setOnClickListener(v -> {
+            peopleCount++;
+            edtPeople.setText(String.valueOf(peopleCount));
+        });
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this,
@@ -101,6 +145,21 @@ public class MeetingCreateActivity extends AppCompatActivity {
                 if (people.length() == 0 || place.length() == 0 || distance.length() == 0
                         || date.length() == 0 || time.length() == 0) {
                     Toast.makeText(MeetingCreateActivity.this, "필수 항목을 입력하세요.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (parseIntSafe(people) < 2) {
+                    Toast.makeText(MeetingCreateActivity.this, "최소 2명부터 설정 가능합니다.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (parseDoubleSafe(distance) <= 0) {
+                    Toast.makeText(MeetingCreateActivity.this, "참여 가능 거리를 올바르게 입력하세요.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (!isFutureDateTime(date, time)) {
+                    Toast.makeText(MeetingCreateActivity.this, "오늘 이후 날짜만 선택 가능합니다.", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -167,6 +226,37 @@ public class MeetingCreateActivity extends AppCompatActivity {
         });
     }
 
+    private boolean isFutureDateTime(String date, String time) {
+        try {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.KOREA);
+            format.setLenient(false);
+
+            Date selectedDateTime = format.parse(date + " " + time);
+            Date now = new Date();
+
+            return selectedDateTime != null && selectedDateTime.after(now);
+        } catch (Exception e) {
+            Toast.makeText(this, "날짜와 시간을 예시 형식에 맞게 입력하세요.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+    }
+
+    private int parseIntSafe(String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private double parseDoubleSafe(String value) {
+        try {
+            return Double.parseDouble(value);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
     private void setupPlaceSearchWebView() {
         WebSettings settings = webPlaceSearch.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -174,7 +264,7 @@ public class MeetingCreateActivity extends AppCompatActivity {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 
         webPlaceSearch.setWebViewClient(new WebViewClient());
-        webPlaceSearch.setWebChromeClient(new android.webkit.WebChromeClient());
+        webPlaceSearch.setWebChromeClient(new WebChromeClient());
         webPlaceSearch.addJavascriptInterface(new PlaceBridge(), "Android");
 
         webPlaceSearch.loadDataWithBaseURL(
@@ -232,9 +322,7 @@ public class MeetingCreateActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public void onSearchReady() {
-            runOnUiThread(() -> {
-                txtPlaceCheck.setText("장소 검색 준비 완료");
-            });
+            runOnUiThread(() -> txtPlaceCheck.setText("장소 검색 준비 완료"));
         }
 
         @JavascriptInterface

@@ -6,27 +6,71 @@
     android:layout_height="match_parent"
     android:background="#FFFFFF">
 
-    <TextView
+    <RelativeLayout
+        android:id="@+id/layoutMeetingTopBar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="모임"
-        android:gravity="center"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:textColor="#222222"
-        android:layout_marginBottom="16dp" />
+        android:layout_height="76dp"
+        android:layout_marginBottom="12dp">
 
-    <EditText
-        android:id="@+id/edtSearch"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="모임 검색"
-        android:layout_marginBottom="8dp" />
+        <TextView
+            android:id="@+id/textMeetingTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:text="모임"
+            android:textColor="#162033"
+            android:textSize="32sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/buttonMeetingSearch"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@android:color/transparent"
+            android:contentDescription="검색"
+            android:padding="8dp"
+            android:src="@android:drawable/ic_menu_search" />
+
+        <EditText
+            android:id="@+id/edtSearch"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="8dp"
+            android:layout_toStartOf="@id/buttonCloseSearch"
+            android:background="@android:color/transparent"
+            android:hint="모임 검색"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:singleLine="true"
+            android:textColor="#162033"
+            android:textColorHint="#8B93A1"
+            android:textSize="24sp"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/buttonCloseSearch"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@android:color/transparent"
+            android:contentDescription="검색 닫기"
+            android:padding="8dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:visibility="gone" />
+
+    </RelativeLayout>
 
     <Spinner
         android:id="@+id/spinnerFilter"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:minHeight="48dp"
         android:layout_marginBottom="16dp" />
 
     <ListView

@@ -1,6 +1,7 @@
 package com.silpi.app;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -16,6 +17,8 @@ public class MeetingJoinActivity extends AppCompatActivity {
     EditText edtSearch;
     Spinner spinnerFilter;
     ListView listView;
+    TextView textMeetingTitle;
+    ImageButton buttonMeetingSearch, buttonCloseSearch;
 
     ArrayList<String[]> allMeetings = new ArrayList<>();
     ArrayList<String[]> filteredMeetings = new ArrayList<>();
@@ -30,22 +33,50 @@ public class MeetingJoinActivity extends AppCompatActivity {
         edtSearch = findViewById(R.id.edtSearch);
         spinnerFilter = findViewById(R.id.spinnerFilter);
         listView = findViewById(R.id.listView);
+        textMeetingTitle = findViewById(R.id.textMeetingTitle);
+        buttonMeetingSearch = findViewById(R.id.buttonMeetingSearch);
+        buttonCloseSearch = findViewById(R.id.buttonCloseSearch);
 
         ArrayAdapter<String> filterAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, filters);
         filterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerFilter.setAdapter(filterAdapter);
+
+        buttonMeetingSearch.setOnClickListener(v -> {
+            textMeetingTitle.setVisibility(View.GONE);
+            buttonMeetingSearch.setVisibility(View.GONE);
+            edtSearch.setVisibility(View.VISIBLE);
+            buttonCloseSearch.setVisibility(View.VISIBLE);
+            edtSearch.requestFocus();
+        });
+
+        buttonCloseSearch.setOnClickListener(v -> {
+            edtSearch.setText("");
+            edtSearch.setVisibility(View.GONE);
+            buttonCloseSearch.setVisibility(View.GONE);
+            textMeetingTitle.setVisibility(View.VISIBLE);
+            buttonMeetingSearch.setVisibility(View.VISIBLE);
+            applyFilter();
+        });
 
         loadMeetings();
         applyFilter();
 
         edtSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { applyFilter(); }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                applyFilter();
+            }
+
             @Override public void afterTextChanged(Editable s) {}
         });
 
         spinnerFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) { applyFilter(); }
+            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                applyFilter();
+            }
+
             @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
 
@@ -128,6 +159,7 @@ public class MeetingJoinActivity extends AppCompatActivity {
 
     String[] normalize(String[] arr) {
         String[] result = new String[14];
+
         for (int i = 0; i < result.length; i++) {
             if (i < arr.length) result[i] = arr[i];
             else if (i == 9) result[i] = "0";
@@ -135,6 +167,7 @@ public class MeetingJoinActivity extends AppCompatActivity {
             else if (i == 11) result[i] = "true";
             else result[i] = "";
         }
+
         return result;
     }
 
@@ -205,9 +238,16 @@ public class MeetingJoinActivity extends AppCompatActivity {
             txtTime.setText("시간: " + time);
             txtPeople.setText("인원: " + currentPeople + "/" + maxPeople + "명");
 
-            if (currentPeople >= maxPeople) txtBadge.setText("마감");
-            else if (joined) txtBadge.setText("참여중");
-            else txtBadge.setText("모집중");
+            if (currentPeople >= maxPeople) {
+                txtBadge.setText("마감");
+                txtBadge.setBackgroundColor(Color.parseColor("#9E9E9E"));
+            } else if (joined) {
+                txtBadge.setText("참여중");
+                txtBadge.setBackgroundColor(Color.parseColor("#7B68A8"));
+            } else {
+                txtBadge.setText("모집중");
+                txtBadge.setBackgroundColor(Color.parseColor("#34A853"));
+            }
 
             return convertView;
         }

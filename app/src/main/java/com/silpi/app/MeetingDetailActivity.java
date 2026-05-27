@@ -16,6 +16,7 @@ public class MeetingDetailActivity extends AppCompatActivity {
     Button join, cancel, delete;
 
     String[] info;
+    boolean joinProcessing = false;
 
     private static final double CURRENT_LAT = 37.6425;
     private static final double CURRENT_LNG = 127.1066;
@@ -51,6 +52,8 @@ public class MeetingDetailActivity extends AppCompatActivity {
     }
 
     void showInfo() {
+        joinProcessing = false;
+
         if (info == null) return;
 
         String meetingTitle = info[0];
@@ -107,6 +110,18 @@ public class MeetingDetailActivity extends AppCompatActivity {
     void joinMeeting() {
         if (info == null) return;
 
+        if (joinProcessing) return;
+        joinProcessing = true;
+        join.setEnabled(false);
+
+        boolean alreadyJoined = Boolean.parseBoolean(getValue(info, 10, "false"));
+        if (alreadyJoined) {
+            Toast.makeText(this, "이미 참여한 모임입니다.", Toast.LENGTH_SHORT).show();
+            loadCurrentMeeting();
+            showInfo();
+            return;
+        }
+
         double limitKm = parseDoubleSafe(info[4]);
         double lat = parseDoubleSafe(getValue(info, 12, "0"));
         double lng = parseDoubleSafe(getValue(info, 13, "0"));
@@ -114,6 +129,8 @@ public class MeetingDetailActivity extends AppCompatActivity {
 
         if (distanceKm > limitKm) {
             Toast.makeText(this, "현재 위치에서 참여 가능 거리를 초과했습니다.", Toast.LENGTH_SHORT).show();
+            loadCurrentMeeting();
+            showInfo();
             return;
         }
 
@@ -122,6 +139,8 @@ public class MeetingDetailActivity extends AppCompatActivity {
 
         if (currentPeople >= maxPeople) {
             Toast.makeText(this, "정원이 마감되었습니다.", Toast.LENGTH_SHORT).show();
+            loadCurrentMeeting();
+            showInfo();
             return;
         }
 
