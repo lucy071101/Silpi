@@ -32,7 +32,6 @@ public class PostDetailActivity extends AppCompatActivity {
     private ListenerRegistration commentsListener;
 
     private TextView tvTitle, tvContent, tvAuthor, btnRecommend;
-    // 🌟 ivPostImage(본문 사진 변수)가 추가되었습니다!
     private EditText etComment;
     private ImageView btnSend, ivProfile, btnMoreOptions, ivPostImage;
     private CheckBox cbCommentAnonymous;
@@ -86,7 +85,6 @@ public class PostDetailActivity extends AppCompatActivity {
         cbCommentAnonymous = findViewById(R.id.cb_comment_anonymous);
         btnMoreOptions = findViewById(R.id.btn_more_options);
 
-        // 🌟 아까 XML에 만든 본문 사진 액자를 찾아 연결합니다!
         ivPostImage = findViewById(R.id.iv_detail_image);
 
         rvComments = findViewById(R.id.rv_comments);
@@ -103,10 +101,9 @@ public class PostDetailActivity extends AppCompatActivity {
                         String authorName = snapshot.getString("authorName");
                         tvAuthor.setText(authorName != null ? authorName : "익명");
 
-                        // 🌟 [추가된 기능] 본문 사진(첨부 사진) 해독기 🌟
                         String imageUrl = snapshot.getString("imageUrl");
                         if (imageUrl != null && !imageUrl.isEmpty()) {
-                            ivPostImage.setVisibility(View.VISIBLE); // 사진이 있으면 액자를 보여줌
+                            ivPostImage.setVisibility(View.VISIBLE);
                             try {
                                 byte[] decodedBytes = android.util.Base64.decode(imageUrl, android.util.Base64.DEFAULT);
                                 Glide.with(PostDetailActivity.this)
@@ -117,10 +114,9 @@ public class PostDetailActivity extends AppCompatActivity {
                                 ivPostImage.setVisibility(View.GONE);
                             }
                         } else {
-                            ivPostImage.setVisibility(View.GONE); // 사진이 없으면 액자를 숨김
+                            ivPostImage.setVisibility(View.GONE);
                         }
 
-                        // 프로필 사진 처리 로직 (기존과 동일)
                         Boolean isAnonymous = snapshot.getBoolean("isAnonymous");
                         String authorProfile = snapshot.getString("authorProfile");
 
@@ -155,7 +151,6 @@ public class PostDetailActivity extends AppCompatActivity {
                         long recommends = snapshot.getLong("recommendCount") != null ? snapshot.getLong("recommendCount") : 0;
                         btnRecommend.setText("👍 공감 " + recommends);
 
-                        // 본인 확인 및 삭제 버튼 로직
                         String authorId = snapshot.getString("authorId");
                         String myUserId = CurrentUserProvider.INSTANCE.userId(this);
                         String myName = CurrentUserProvider.INSTANCE.userName(this);
@@ -228,7 +223,7 @@ public class PostDetailActivity extends AppCompatActivity {
                     etComment.setText("");
                     Toast.makeText(this, "댓글이 등록되었습니다.", Toast.LENGTH_SHORT).show();
 
-                    finish(); // 댓글 작성이 완료되면 화면 닫기
+                    finish();
                 });
     }
 

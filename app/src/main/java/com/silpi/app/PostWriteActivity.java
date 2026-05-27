@@ -33,7 +33,6 @@ import java.util.Map;
 public class PostWriteActivity extends AppCompatActivity {
 
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    // 🌟 Storage 관련 코드 삭제 완료!
 
     private ImageView btnCancel, btnPhoto, ivPreview;
     private TextView btnComplete;
@@ -89,7 +88,6 @@ public class PostWriteActivity extends AppCompatActivity {
         btnComplete.setOnClickListener(v -> uploadPostWithImage());
     }
 
-    // 🌟 Storage 대신 사진을 글자로 암호화해서 올리도록 변경!
     private void uploadPostWithImage() {
         String title = etTitle.getText().toString().trim();
         String content = etContent.getText().toString().trim();
@@ -99,11 +97,9 @@ public class PostWriteActivity extends AppCompatActivity {
         Toast.makeText(this, "동네 소식을 올리는 중...", Toast.LENGTH_SHORT).show();
 
         if (selectedImageUri != null) {
-            // 사진을 Base64 글자로 변환
             String base64Image = encodeImageToBase64(selectedImageUri);
 
             if (base64Image != null) {
-                // 변환된 글자 데이터를 데이터베이스에 바로 저장
                 saveToFirestore(title, content, base64Image, isAnonymous);
             } else {
                 btnComplete.setEnabled(true);
@@ -114,13 +110,11 @@ public class PostWriteActivity extends AppCompatActivity {
         }
     }
 
-    // 🌟 사진(Uri)을 엄청나게 긴 글자(Base64)로 바꿔주는 마법의 해독기(변환기)
     private String encodeImageToBase64(Uri uri) {
         try {
             InputStream inputStream = getContentResolver().openInputStream(uri);
             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            // 사진 용량을 살짝 압축해서 데이터베이스가 버거워하지 않게 합니다 (품질 70%)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos);
             byte[] bytes = baos.toByteArray();
             return Base64.encodeToString(bytes, Base64.DEFAULT);
@@ -134,7 +128,7 @@ public class PostWriteActivity extends AppCompatActivity {
         Map<String, Object> post = new HashMap<>();
         post.put("title", title);
         post.put("content", content);
-        post.put("imageUrl", imageUrl); // 여기에 Base64 암호화 글자가 들어갑니다!
+        post.put("imageUrl", imageUrl);
         post.put("isAnonymous", isAnonymous);
         post.put("category", category);
         post.put("recommendCount", 0);

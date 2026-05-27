@@ -2,9 +2,11 @@ package com.silpi.app;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
@@ -21,6 +23,8 @@ public class CommunityListActivity extends AppCompatActivity {
 
         initViews();
         setClickListeners();
+
+        setupSearchFilter();
     }
 
     private void initViews() {
@@ -48,10 +52,44 @@ public class CommunityListActivity extends AppCompatActivity {
 
         btnSearch.setOnClickListener(v -> {
             String searchQuery = etSearch.getText().toString().trim();
-            if (!searchQuery.isEmpty()) {
-                Toast.makeText(CommunityListActivity.this, searchQuery + " 검색", Toast.LENGTH_SHORT).show();
-            }
+            filterCommunities(searchQuery);
         });
+    }
+
+    private void setupSearchFilter() {
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterCommunities(s.toString().trim());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private void filterCommunities(String query) {
+        String q = query.toLowerCase();
+
+        toggleVisibility(btnExercise, "운동", q);
+        toggleVisibility(btnFree, "자유", q);
+        toggleVisibility(btnBaduk, "바둑", q);
+        toggleVisibility(btnJanggi, "장기", q);
+        toggleVisibility(btnHike, "등산", q);
+        toggleVisibility(btnTravel, "여행", q);
+        toggleVisibility(btnFish, "낚시", q);
+        toggleVisibility(btnRead, "독서", q);
+    }
+
+    private void toggleVisibility(CardView cardView, String categoryName, String query) {
+        if (query.isEmpty() || categoryName.contains(query)) {
+            cardView.setVisibility(View.VISIBLE);
+        } else {
+            cardView.setVisibility(View.GONE);
+        }
     }
 
     private void moveToCommunityDetail(String categoryName) {

@@ -17,7 +17,6 @@ public class PostListActivity extends AppCompatActivity {
 
     private TextView tvBoardTitle;
 
-    // 🌟 1. 불필요해진 하단 바 변수들을 지우고, 상단으로 이사 온 글쓰기 버튼만 남겼습니다!
     private LinearLayout btnWrite;
 
     private RecyclerView rvPostList;
@@ -42,7 +41,6 @@ public class PostListActivity extends AppCompatActivity {
             tvBoardTitle.setText(currentCategory + " 게시판");
         }
 
-        // 🌟 2. 하단 바 세팅 대신, 상단 글쓰기 버튼 이벤트만 세팅합니다.
         setupWriteButton();
 
         loadPosts(currentCategory);
@@ -60,7 +58,6 @@ public class PostListActivity extends AppCompatActivity {
         tvBoardTitle = findViewById(R.id.tv_board_title);
         rvPostList = findViewById(R.id.rv_post_list);
 
-        // 🌟 3. 디자인 파일에서 새로 만든 상단 글쓰기 버튼(btn_write) 연결!
         btnWrite = findViewById(R.id.btn_write);
 
         android.widget.ImageView btnBack = findViewById(R.id.btn_back);
@@ -91,7 +88,6 @@ public class PostListActivity extends AppCompatActivity {
                 });
     }
 
-    // 🌟 4. 쓸모없는 클릭 이벤트들 지우고, 글쓰기 화면으로 넘어가는 기능만 깔끔하게 남겼습니다.
     private void setupWriteButton() {
         btnWrite.setOnClickListener(v -> {
             Intent intent = new Intent(PostListActivity.this, PostWriteActivity.class);
