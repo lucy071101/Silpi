@@ -1,5 +1,6 @@
 package com.silpi.app
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
 import android.view.LayoutInflater
@@ -184,20 +185,34 @@ class ChatAdapter(
             chatMessage: ChatMessage
     ) {
         if (chatMessage.messageType == "image" && chatMessage.imageData.isNotBlank()) {
-            textView.visibility = View.GONE
-            imageView.visibility = View.VISIBLE
-
-            val imageBytes = Base64.decode(chatMessage.imageData, Base64.DEFAULT)
-            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-            imageView.setImageBitmap(bitmap)
-            imageView.setOnClickListener {
-                onImageClick(chatMessage.imageData)
+            val bitmap = decodeImageData(chatMessage.imageData)
+            if (bitmap != null) {
+                textView.visibility = View.GONE
+                imageView.visibility = View.VISIBLE
+                imageView.setImageBitmap(bitmap)
+                imageView.setOnClickListener {
+                    onImageClick(chatMessage.imageData)
+                }
+            } else {
+                imageView.visibility = View.GONE
+                imageView.setOnClickListener(null)
+                textView.visibility = View.VISIBLE
+                textView.text = "이미지를 불러올 수 없습니다."
             }
         } else {
             imageView.visibility = View.GONE
             imageView.setOnClickListener(null)
             textView.visibility = View.VISIBLE
             textView.text = chatMessage.message
+        }
+    }
+
+    private fun decodeImageData(imageData: String): Bitmap? {
+        return try {
+            val imageBytes = Base64.decode(imageData, Base64.DEFAULT)
+            BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+        } catch (e: IllegalArgumentException) {
+            null
         }
     }
 

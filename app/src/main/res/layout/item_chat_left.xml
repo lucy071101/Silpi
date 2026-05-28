@@ -51,7 +51,7 @@
             android:layout_width="220dp"
             android:layout_height="220dp"
             android:background="@drawable/bg_chat_left"
-            android:contentDescription="이미지 메시지"
+            android:contentDescription="사진"
             android:padding="4dp"
             android:scaleType="centerCrop"
             android:visibility="gone" />

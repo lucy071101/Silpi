@@ -121,7 +121,7 @@ class ChatListActivity : AppCompatActivity() {
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
                         Log.e("ChatListActivity", "Chat room list load failed", error)
-                        Toast.makeText(this, "채팅방 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "대화 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
                         return@addSnapshotListener
                     }
 
@@ -357,6 +357,8 @@ class ChatListActivity : AppCompatActivity() {
         if (participantIds.isEmpty()) return
 
         for (userId in participantIds) {
+            if (profileImagesByUserId.containsKey(userId)) continue
+
             db.collection("users")
                     .document(userId)
                     .get()
