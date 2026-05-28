@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -28,20 +28,37 @@
                 android:paddingEnd="18dp">
 
                 <ImageButton
-                    android:id="@+id/buttonBack"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:id="@+id/buttonBackIcon"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:layout_centerVertical="true"
                     android:background="@android:color/transparent"
                     android:contentDescription="뒤로가기"
-                    android:padding="8dp"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:padding="6dp"
+                    android:scaleType="center"
                     android:src="@drawable/ic_chat_back" />
+
+                <TextView
+                    android:id="@+id/buttonBack"
+                    android:layout_width="76dp"
+                    android:layout_height="44dp"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/bg_profile_save_button"
+                    android:contentDescription="뒤로가기"
+                    android:gravity="center"
+                    android:text="취소"
+                    android:textColor="#FFFFFF"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
-                    android:text="프로필"
+                    android:text="나의 정보"
                     android:textColor="#162033"
                     android:textSize="26sp"
                     android:textStyle="bold" />
@@ -52,9 +69,10 @@
                     android:layout_height="44dp"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
+                    android:background="@drawable/bg_profile_save_button"
                     android:gravity="center"
                     android:text="수정"
-                    android:textColor="#162033"
+                    android:textColor="#FFFFFF"
                     android:textSize="17sp"
                     android:textStyle="bold" />
             </RelativeLayout>
@@ -182,16 +200,28 @@
                     android:textColor="#162033"
                     android:textSize="20sp" />
 
+                <TextView
+                    android:id="@+id/textViewBioLimit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginTop="-22dp"
+                    android:text="0 / 90자"
+                    android:textColor="#806BB0"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
                 <EditText
                     android:id="@+id/editTextBio"
                     android:layout_width="match_parent"
-                    android:layout_height="150dp"
+                    android:layout_height="200dp"
                     android:layout_marginTop="18dp"
                     android:background="@drawable/bg_edit_text_clear"
                     android:gravity="top"
                     android:hint="자기소개를 입력하세요"
                     android:inputType="textMultiLine"
-                    android:minLines="4"
+                    android:minLines="6"
+                    android:maxLines="6"
                     android:paddingStart="16dp"
                     android:paddingTop="14dp"
                     android:paddingEnd="16dp"

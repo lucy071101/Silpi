@@ -40,6 +40,9 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var menuPanel: FrameLayout
     private lateinit var imageProfile: ImageView
     private lateinit var textViewUserName: TextView
+    private lateinit var imagePreviewOverlay: FrameLayout
+    private lateinit var imagePreview: ImageView
+    private lateinit var buttonCloseImagePreview: ImageButton
 
     private lateinit var chatAdapter: ChatAdapter
     private val messageList = mutableListOf<ChatMessage>()
@@ -95,10 +98,15 @@ class ChatActivity : AppCompatActivity() {
         menuPanel = findViewById(R.id.layoutChatMenuPanel)
         imageProfile = findViewById(R.id.imageProfile)
         textViewUserName = findViewById(R.id.textViewUserName)
+        imagePreviewOverlay = findViewById(R.id.layoutImagePreviewOverlay)
+        imagePreview = findViewById(R.id.imagePreview)
+        buttonCloseImagePreview = findViewById(R.id.buttonCloseImagePreview)
     }
 
     private fun setupRecyclerView() {
-        chatAdapter = ChatAdapter(messageList, myUserId, profileImagesByUserId)
+        chatAdapter = ChatAdapter(messageList, myUserId, profileImagesByUserId) { imageData ->
+            showImagePreview(imageData)
+        }
         chatRecyclerView.layoutManager = LinearLayoutManager(this)
         chatRecyclerView.adapter = chatAdapter
     }
@@ -118,6 +126,18 @@ class ChatActivity : AppCompatActivity() {
 
         moreButton.setOnClickListener {
             showChatRoomMenu()
+        }
+
+        buttonCloseImagePreview.setOnClickListener {
+            closeImagePreview()
+        }
+
+        imagePreviewOverlay.setOnClickListener {
+            closeImagePreview()
+        }
+
+        imagePreview.setOnClickListener {
+            // Keep image taps from closing the preview.
         }
 
         sendButton.setOnClickListener {
@@ -395,6 +415,16 @@ class ChatActivity : AppCompatActivity() {
         val visibleParticipants = participants.take(30)
         participantTitle.text = "대화상대 ${participants.size}"
         recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.isVerticalScrollBarEnabled = true
+        recyclerView.isScrollbarFadingEnabled = false
+        recyclerView.isNestedScrollingEnabled = true
+        recyclerView.layoutParams = recyclerView.layoutParams.apply {
+            height = if (visibleParticipants.size > 6) {
+                (360 * resources.displayMetrics.density).toInt()
+            } else {
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            }
+        }
         recyclerView.adapter = ChatParticipantAdapter(visibleParticipants)
 
         showAllText.visibility = if (participants.size > 30) View.VISIBLE else View.GONE
@@ -432,6 +462,9 @@ class ChatActivity : AppCompatActivity() {
 
     private fun exitChatRoom(chatRoom: ChatRoom) {
         val roomRef = db.collection("chats").document(chatRoomId)
+        val exitMessageRef = roomRef.collection("messages").document()
+        val exitMessage = "${myUserName}님이 나갔습니다."
+        val exitMessageTime = System.currentTimeMillis()
 
         db.runTransaction { transaction ->
             val document = transaction.get(roomRef)
@@ -450,13 +483,33 @@ class ChatActivity : AppCompatActivity() {
             if (updatedParticipants.isEmpty()) {
                 transaction.delete(roomRef)
             } else {
+                updatedParticipants.forEach { userId ->
+                    updatedUnreadCount[userId] = (updatedUnreadCount[userId] ?: 0) + 1
+                }
+
+                transaction.set(
+                        exitMessageRef,
+                        mapOf(
+                                "message" to exitMessage,
+                                "senderId" to "",
+                                "senderName" to "",
+                                "imageUrl" to "",
+                                "imageData" to "",
+                                "messageType" to "system",
+                                "timestamp" to exitMessageTime,
+                                "sentAt" to FieldValue.serverTimestamp()
+                        )
+                )
                 transaction.update(
                         roomRef,
                         mapOf(
                                 "participants" to updatedParticipants,
                                 "participantNames" to updatedParticipantNames,
                                 "unreadCount" to updatedUnreadCount,
-                                "searchNames" to updatedSearchNames
+                                "searchNames" to updatedSearchNames,
+                                "lastMessage" to exitMessage,
+                                "lastMessageTime" to exitMessageTime,
+                                "lastMessageSentAt" to FieldValue.serverTimestamp()
                         )
                 )
             }
@@ -468,6 +521,18 @@ class ChatActivity : AppCompatActivity() {
                     Log.e("ChatActivity", "Chat room exit failed", e)
                     Toast.makeText(this, "채팅방 나가기에 실패했습니다.", Toast.LENGTH_SHORT).show()
                 }
+    }
+
+    private fun showImagePreview(imageData: String) {
+        val imageBytes = Base64.decode(imageData, Base64.DEFAULT)
+        val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+        imagePreview.setImageBitmap(bitmap)
+        imagePreviewOverlay.visibility = View.VISIBLE
+    }
+
+    private fun closeImagePreview() {
+        imagePreview.setImageDrawable(null)
+        imagePreviewOverlay.visibility = View.GONE
     }
 
     private fun loadParticipants(chatRoom: ChatRoom, onLoaded: (List<ChatParticipant>) -> Unit) {

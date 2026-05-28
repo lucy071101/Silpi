@@ -9,6 +9,7 @@ import android.content.Context
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -21,6 +22,7 @@ class CreateChatRoomActivity : AppCompatActivity() {
     private lateinit var editTextUserSearch: EditText
     private lateinit var btnCreateRoom: Button
     private lateinit var buttonBack: ImageButton
+    private lateinit var textViewFriendLabel: TextView
     private lateinit var recyclerViewUser: RecyclerView
     private lateinit var recyclerViewSelectedUser: RecyclerView
 
@@ -53,8 +55,10 @@ class CreateChatRoomActivity : AppCompatActivity() {
         editTextUserSearch = findViewById(R.id.editTextUserSearch)
         btnCreateRoom = findViewById(R.id.btnCreateRoom)
         buttonBack = findViewById(R.id.buttonBack)
+        textViewFriendLabel = findViewById(R.id.textViewFriendLabel)
         recyclerViewUser = findViewById(R.id.recyclerViewUser)
         recyclerViewSelectedUser = findViewById(R.id.recyclerViewSelectedUser)
+        updateSelectedCountLabel()
     }
 
     private fun setupRecyclerViews() {
@@ -69,10 +73,14 @@ class CreateChatRoomActivity : AppCompatActivity() {
         }
 
         recyclerViewUser.layoutManager = LinearLayoutManager(this)
+        recyclerViewUser.isVerticalScrollBarEnabled = true
+        recyclerViewUser.isScrollbarFadingEnabled = false
         recyclerViewUser.adapter = selectUserAdapter
 
         recyclerViewSelectedUser.layoutManager =
                 LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        recyclerViewSelectedUser.isHorizontalScrollBarEnabled = true
+        recyclerViewSelectedUser.isScrollbarFadingEnabled = false
         recyclerViewSelectedUser.adapter = selectedUserAdapter
     }
 
@@ -159,8 +167,17 @@ class CreateChatRoomActivity : AppCompatActivity() {
 
         recyclerViewSelectedUser.visibility =
                 if (selectedUserList.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
+        updateSelectedCountLabel()
 
         btnCreateRoom.text = "채팅방 만들기"
+    }
+
+    private fun updateSelectedCountLabel() {
+        textViewFriendLabel.text = if (selectedUserList.isEmpty()) {
+            "친구"
+        } else {
+            "친구 (${selectedUserList.size}명 선택)"
+        }
     }
 
     private fun showRoomNameDialog() {

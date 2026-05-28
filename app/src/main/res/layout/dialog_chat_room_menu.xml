@@ -36,34 +36,76 @@
                 android:layout_height="1dp"
                 android:layout_weight="1" />
 
-            <ImageButton
-                android:id="@+id/buttonMenuMute"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="알림"
-                android:padding="8dp"
-                android:src="@drawable/ic_chat_bell_bold" />
+            <LinearLayout
+                android:layout_width="52dp"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
 
-            <ImageButton
-                android:id="@+id/buttonMenuFavorite"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:layout_marginStart="8dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="즐겨찾기"
-                android:padding="8dp"
-                android:src="@drawable/ic_chat_star_bold" />
+                <ImageButton
+                    android:id="@+id/buttonMenuMute"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="알림"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_chat_bell_bold" />
 
-            <ImageButton
-                android:id="@+id/buttonMenuSettings"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="알림"
+                    android:textColor="#324052"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="52dp"
+                android:layout_height="match_parent"
                 android:layout_marginStart="8dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="설정"
-                android:padding="8dp"
-                android:src="@drawable/ic_chat_settings_bold" />
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/buttonMenuFavorite"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="중요"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_chat_star_bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="중요"
+                    android:textColor="#324052"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="52dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/buttonMenuSettings"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="설정"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_chat_settings_bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="설정"
+                    android:textColor="#324052"
+                    android:textSize="12sp" />
+            </LinearLayout>
         </LinearLayout>
 
         <FrameLayout
@@ -166,7 +208,9 @@
                 android:id="@+id/recyclerViewMenuParticipants"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false" />
+                android:fadeScrollbars="false"
+                android:nestedScrollingEnabled="true"
+                android:scrollbars="vertical" />
 
             <TextView
                 android:id="@+id/textViewShowAllParticipants"
