@@ -124,7 +124,7 @@ class ChatRoomAdapter(
 
     private fun formatChatListTime(timestamp: Long): String {
         if (timestamp == 0L) return ""
-        return ChatTimeHelper.formatChatTime(timestamp)
+        return ChatTimeHelper.formatChatListTime(timestamp)
     }
 
     private fun dpToPx(view: View, dp: Int): Int {

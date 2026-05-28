@@ -15,8 +15,9 @@
         android:background="@drawable/bg_profile_circle"
         android:clipToOutline="true"
         android:contentDescription="보낸 사람 프로필"
-        android:scaleType="centerCrop"
-        android:src="@drawable/padang" />
+        android:padding="10dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_default_profile_person" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -31,7 +32,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="2dp"
             android:layout_marginBottom="2dp"
-            android:text="민수"
+            android:text="이름"
             android:textColor="#888888"
             android:textSize="12sp" />
 
@@ -42,7 +43,7 @@
             android:background="@drawable/bg_chat_left"
             android:maxWidth="250dp"
             android:padding="12dp"
-            android:text="안녕!"
+            android:text="안녕하세요!"
             android:textSize="16sp" />
 
         <ImageView

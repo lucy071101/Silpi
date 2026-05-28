@@ -73,10 +73,17 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <GridLayout
-        android:id="@+id/gridInterestOptions"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="420dp"
         android:layout_marginTop="20dp"
-        android:columnCount="2" />
+        android:fadeScrollbars="false"
+        android:scrollbars="vertical">
+
+        <GridLayout
+            android:id="@+id/gridInterestOptions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="2" />
+    </ScrollView>
 </LinearLayout>
