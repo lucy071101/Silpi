@@ -41,4 +41,10 @@
         android:text="참여취소"
         android:layout_marginTop="10dp"/>
 
+    <Button
+        android:id="@+id/delete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="모임 삭제"
+        android:layout_marginTop="10dp"/>
 </LinearLayout>

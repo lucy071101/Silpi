@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -10,123 +12,220 @@
         android:padding="16dp">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="모임 생성"
+            android:text="모임"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:layout_marginBottom="16dp" />
+            android:gravity="center"
+            android:layout_marginBottom="20dp" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="1. 카테고리" />
+            android:text="카테고리"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
 
         <Spinner
             android:id="@+id/spinnerCategory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp" />
+            android:minHeight="48dp"
+            android:layout_marginBottom="18dp" />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="2. 참여 인원" />
-
-        <EditText
-            android:id="@+id/edtPeople"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="예: 5"
-            android:inputType="number"
-            android:layout_marginBottom="12dp" />
+            android:text="참여 인원"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="#F4F4F4"
+            android:paddingLeft="14dp"
+            android:paddingRight="8dp"
+            android:layout_marginBottom="18dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="인원"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#222222" />
+
+            <TextView
+                android:id="@+id/edtPeople"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="2"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#222222" />
+
+            <Button
+                android:id="@+id/btnMinusPeople"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:minWidth="0dp"
+                android:padding="0dp"
+                android:text="-"
+                android:textSize="18sp" />
+
+            <Button
+                android:id="@+id/btnPlusPeople"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:minWidth="0dp"
+                android:padding="0dp"
+                android:text="+"
+                android:textSize="18sp"
+                android:layout_marginLeft="6dp" />
+        </LinearLayout>
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="3. 모임 장소" />
+            android:text="모임 장소"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
 
         <EditText
             android:id="@+id/edtPlace"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="예: 삼육대학교 정문"
-            android:layout_marginBottom="12dp" />
+            android:minHeight="48dp"
+            android:hint="예: 삼육대학교, 공릉역, 불암산"
+            android:inputType="text"
+            android:importantForAutofill="no"
+            android:layout_marginBottom="10dp" />
+
+        <Button
+            android:id="@+id/btnCheckPlace"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="장소 확인"
+            android:layout_marginBottom="8dp" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/txtPlaceCheck"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="4. 참여 가능 거리(km)" />
+            android:text="장소 확인 전입니다."
+            android:layout_marginBottom="10dp" />
+
+        <WebView
+            android:id="@+id/webPlaceSearch"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:alpha="0.01"
+            android:importantForAccessibility="no"
+            tools:ignore="WebViewLayout" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="참여 가능 거리"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
 
         <EditText
             android:id="@+id/edtDistance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="예: 3"
-            android:inputType="number"
-            android:layout_marginBottom="12dp" />
+            android:minHeight="48dp"
+            android:hint="참여 가능 거리(km)"
+            android:inputType="numberDecimal"
+            android:importantForAutofill="no"
+            android:layout_marginBottom="18dp" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="5. 날짜" />
+            android:text="날짜"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
 
         <EditText
             android:id="@+id/edtDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="48dp"
             android:hint="예: 2026-04-05"
-            android:layout_marginBottom="12dp" />
+            android:inputType="date"
+            android:importantForAutofill="no"
+            android:layout_marginBottom="18dp" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="6. 시간" />
+            android:text="시간"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
 
         <EditText
             android:id="@+id/edtTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="48dp"
             android:hint="예: 14:00"
-            android:layout_marginBottom="12dp" />
+            android:inputType="time"
+            android:importantForAutofill="no"
+            android:layout_marginBottom="18dp" />
 
         <CheckBox
             android:id="@+id/chkGuardian"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:minHeight="48dp"
             android:text="보호자 동반"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="18dp" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="7. 추가 설명" />
+            android:text="모임 설명"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
 
         <EditText
             android:id="@+id/edtDesc"
             android:layout_width="match_parent"
             android:layout_height="120dp"
-            android:hint="모임 설명을 입력하세요"
+            android:hint="모임 설명"
             android:gravity="top"
             android:inputType="textMultiLine"
-            android:layout_marginBottom="16dp" />
+            android:importantForAutofill="no"
+            android:layout_marginBottom="20dp" />
 
         <Button
             android:id="@+id/btnCreate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="모임 생성"
-            android:backgroundTint="#4CAF50"
-            android:textColor="#FFFFFF"
-            android:layout_marginTop="16dp"/>
+            android:minHeight="48dp"
+            android:text="모임 생성" />
 
         <TextView
             android:id="@+id/txtResult"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="여기에 생성 결과가 표시됩니다."
-            android:textSize="16sp"
-            android:padding="12dp" />
+            android:layout_marginTop="12dp" />
 
     </LinearLayout>
 </ScrollView>

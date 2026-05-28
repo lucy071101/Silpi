@@ -1,71 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="#FFFFFF">
 
     <LinearLayout
-        android:orientation="vertical"
-        android:padding="24dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="지도"
-            android:textSize="28sp"
+            android:gravity="center"
+            android:textSize="30sp"
             android:textStyle="bold"
             android:textColor="#222222"
-            android:layout_marginBottom="20dp"/>
+            android:layout_marginBottom="16dp" />
 
-        <TextView
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="220dp"
-            android:gravity="center"
-            android:text="지도 표시 영역\nGoogle Maps API 연결 예정"
-            android:textSize="20sp"
-            android:textColor="#555555"
-            android:background="#E0E0E0"
-            android:layout_marginBottom="20dp"/>
+            android:layout_height="340dp"
+            android:layout_marginBottom="16dp">
 
-        <Button
-            android:id="@+id/btnCurrentLocation"
+            <WebView
+                android:id="@+id/webMap"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <Button
+                android:id="@+id/btnCurrentLocation"
+                android:layout_width="54dp"
+                android:layout_height="54dp"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="18dp"
+
+                android:text="⌖"
+                android:textSize="40sp"
+                android:textStyle="bold"
+
+                android:textColor="#E53935"
+
+                android:backgroundTint="#FFFFFF"
+
+                android:gravity="center"
+
+                android:includeFontPadding="false"
+
+                android:padding="0dp"/>
+        </FrameLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="현재 위치 확인"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#4CAF50"/>
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
 
-        <Button
-            android:id="@+id/btnMeetingLocation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="모임 위치 표시"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#4CAF50"
-            android:layout_marginTop="12dp"/>
+            <Button
+                android:id="@+id/btnMeetingLocation"
+                android:layout_width="0dp"
+                android:layout_height="58dp"
+                android:layout_weight="1"
+                android:text="전체 모임"
+                android:textSize="19sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#1E88E5"
+                android:layout_marginEnd="6dp" />
+
+            <Button
+                android:id="@+id/btnJoinedMeetingLocation"
+                android:layout_width="0dp"
+                android:layout_height="58dp"
+                android:layout_weight="1"
+                android:text="참여중"
+                android:textSize="19sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#2E7D32"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/btnMeetingInfo"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="모임 정보 조회"
+            android:layout_height="58dp"
+            android:text="모임 정보 보기"
+            android:textSize="20sp"
+            android:textStyle="bold"
             android:textColor="#FFFFFF"
-            android:backgroundTint="#4CAF50"
-            android:layout_marginTop="12dp"/>
+            android:backgroundTint="#7B68A8"
+            android:layout_marginBottom="14dp" />
 
         <TextView
             android:id="@+id/txtMapResult"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="버튼을 눌러 지도 기능을 확인하세요."
-            android:textSize="18sp"
+            android:text="전체 모임 또는 참여중 버튼을 눌러 모임 위치를 확인하세요."
+            android:textSize="16sp"
             android:textColor="#333333"
-            android:background="#FFFFFF"
-            android:padding="16dp"
-            android:layout_marginTop="20dp"/>
+            android:background="#F6F4FA"
+            android:padding="14dp" />
 
     </LinearLayout>
 </ScrollView>
