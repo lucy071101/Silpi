@@ -440,7 +440,7 @@ class ChatActivity : AppCompatActivity() {
         val createdInfo = view.findViewById<TextView>(R.id.textViewMenuCreatedInfo)
         val creatorName = chatRoom.participantNames[chatRoom.createdBy].orEmpty()
         createdInfo.text = if (creatorName.isNotBlank()) {
-            "${creatorName}님이 만든 채팅방이에요."
+            "${creatorName}님이 만든 대화방이에요."
         } else {
             "채팅방 정보"
         }
@@ -448,8 +448,8 @@ class ChatActivity : AppCompatActivity() {
 
     private fun confirmExitChatRoom(chatRoom: ChatRoom) {
         AlertDialog.Builder(this)
-                .setTitle("채팅방 나가기")
-                .setMessage("이 채팅방에서 나가시겠습니까?")
+                .setTitle("대화방 나가기")
+                .setMessage("이 대화방에서 나가시겠습니까?")
                 .setNegativeButton("취소", null)
                 .setPositiveButton("나가기") { _, _ ->
                     exitChatRoom(chatRoom)
@@ -516,7 +516,7 @@ class ChatActivity : AppCompatActivity() {
                 }
                 .addOnFailureListener { e ->
                     Log.e("ChatActivity", "Chat room exit failed", e)
-                    Toast.makeText(this, "채팅방 나가기에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "대화방 나가기에 실패했습니다.", Toast.LENGTH_SHORT).show()
                 }
     }
 

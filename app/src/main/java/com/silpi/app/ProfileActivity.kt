@@ -43,6 +43,9 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var textViewEditHint: TextView
     private lateinit var textViewInterests: TextView
     private lateinit var buttonSelectInterests: TextView
+    private lateinit var layoutProfilePhotoButtons: View
+    private lateinit var buttonChangePhoto: TextView
+    private lateinit var buttonDefaultPhoto: TextView
     private lateinit var layoutInterestsEdit: View
     private lateinit var layoutProfileLoadError: View
     private lateinit var textViewProfileLoadError: TextView
@@ -110,6 +113,9 @@ class ProfileActivity : AppCompatActivity() {
         textViewEditHint = findViewById(R.id.textViewEditHint)
         textViewInterests = findViewById(R.id.textViewInterests)
         buttonSelectInterests = findViewById(R.id.buttonSelectInterests)
+        layoutProfilePhotoButtons = findViewById(R.id.layoutProfilePhotoButtons)
+        buttonChangePhoto = findViewById(R.id.buttonChangePhoto)
+        buttonDefaultPhoto = findViewById(R.id.buttonDefaultPhoto)
         layoutInterestsEdit = findViewById(R.id.layoutInterestsEdit)
         layoutProfileLoadError = findViewById(R.id.layoutProfileLoadError)
         textViewProfileLoadError = findViewById(R.id.textViewProfileLoadError)
@@ -159,6 +165,19 @@ class ProfileActivity : AppCompatActivity() {
         imageProfile.setOnClickListener {
             if (isEditing && !profileLoadFailed) {
                 imagePickerLauncher.launch("image/*")
+            }
+        }
+
+        buttonChangePhoto.setOnClickListener {
+            if (isEditing && !profileLoadFailed) {
+                imagePickerLauncher.launch("image/*")
+            }
+        }
+
+        buttonDefaultPhoto.setOnClickListener {
+            if (isEditing && !profileLoadFailed) {
+                profileImageData = ""
+                ProfileImageHelper.setProfileImage(imageProfile, profileImageData)
             }
         }
 
@@ -213,6 +232,7 @@ class ProfileActivity : AppCompatActivity() {
         buttonSave.setBackgroundResource(R.drawable.bg_profile_save_button)
 
         imageProfile.isEnabled = isEditing
+        layoutProfilePhotoButtons.visibility = if (isEditing) View.VISIBLE else View.GONE
         textViewEditHint.visibility = if (isEditing) View.VISIBLE else View.GONE
         textViewInterests.isEnabled = isEditing
         textViewInterests.alpha = if (isEditing) 1.0f else 0.92f

@@ -68,11 +68,14 @@
 
     <TextView
         android:id="@+id/textViewRoomName"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="18dp"
         android:layout_marginTop="2dp"
+        android:layout_toStartOf="@id/textViewTime"
         android:layout_toEndOf="@id/imageViewProfile"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:text="채팅방"
         android:textColor="#162033"
         android:textSize="24sp"

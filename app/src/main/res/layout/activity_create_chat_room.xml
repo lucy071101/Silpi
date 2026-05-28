@@ -101,7 +101,7 @@
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:background="@drawable/bg_create_room_button"
-        android:text="채팅방 만들기"
+        android:text="대화방 만들기"
         android:textColor="#FFFFFF"
         android:textSize="24sp"
         android:textStyle="bold" />
