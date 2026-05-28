@@ -6,12 +6,15 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
 import android.widget.ImageView
+import kotlin.math.min
 import java.io.ByteArrayOutputStream
 
 object ProfileImageHelper {
+    private const val DEFAULT_PROFILE_TAG = "default_profile_image"
+
     fun setProfileImage(imageView: ImageView, profileImageData: String) {
         if (profileImageData.isBlank()) {
-            imageView.setImageResource(R.drawable.padang)
+            setDefaultProfileImage(imageView)
             return
         }
 
@@ -19,12 +22,36 @@ object ProfileImageHelper {
             val imageBytes = Base64.decode(profileImageData, Base64.DEFAULT)
             val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
             if (bitmap != null) {
+                imageView.tag = null
+                imageView.setBackgroundResource(R.drawable.bg_default_profile)
+                imageView.setPadding(0, 0, 0, 0)
+                imageView.scaleType = ImageView.ScaleType.CENTER_CROP
                 imageView.setImageBitmap(bitmap)
             } else {
-                imageView.setImageResource(R.drawable.padang)
+                setDefaultProfileImage(imageView)
             }
         } catch (e: IllegalArgumentException) {
-            imageView.setImageResource(R.drawable.padang)
+            setDefaultProfileImage(imageView)
+        }
+    }
+
+    private fun setDefaultProfileImage(imageView: ImageView) {
+        imageView.tag = DEFAULT_PROFILE_TAG
+        imageView.setBackgroundResource(R.drawable.bg_default_profile)
+        imageView.setImageResource(R.drawable.ic_default_profile_person)
+        imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
+        val applyDefaultPadding = {
+            val size = min(imageView.width, imageView.height)
+            if (size > 0 && imageView.tag == DEFAULT_PROFILE_TAG) {
+                val padding = (size * 0.26f).toInt()
+                imageView.setPadding(padding, padding, padding, padding)
+            }
+        }
+
+        if (imageView.width > 0 && imageView.height > 0) {
+            applyDefaultPadding()
+        } else {
+            imageView.post { applyDefaultPadding() }
         }
     }
 

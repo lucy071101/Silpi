@@ -138,12 +138,48 @@
                     android:id="@+id/imageProfile"
                     android:layout_width="132dp"
                     android:layout_height="132dp"
-                    android:background="@drawable/bg_profile_image_ring"
+                    android:background="@drawable/bg_default_profile"
                     android:clipToOutline="true"
                     android:contentDescription="프로필 사진 수정"
-                    android:padding="3dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/padang" />
+                    android:padding="34dp"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_default_profile_person" />
+
+                <LinearLayout
+                    android:id="@+id/layoutProfilePhotoButtons"
+                    android:layout_width="240dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/buttonChangePhoto"
+                        android:layout_width="0dp"
+                        android:layout_height="42dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_profile_save_button"
+                        android:gravity="center"
+                        android:text="사진 바꾸기"
+                        android:textColor="#FFFFFF"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/buttonDefaultPhoto"
+                        android:layout_width="0dp"
+                        android:layout_height="42dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_profile_photo_secondary_button"
+                        android:gravity="center"
+                        android:text="기본 사진"
+                        android:textColor="#806BB0"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
                 <EditText
                     android:id="@+id/editTextName"
@@ -169,7 +205,7 @@
                     android:layout_marginTop="8dp"
                     android:background="@drawable/bg_edit_text_clear"
                     android:gravity="center"
-                    android:hint="사는 지역을 입력하세요"
+                    android:hint="주소를 입력해주세요"
                     android:inputType="text"
                     android:maxLines="1"
                     android:paddingStart="14dp"
@@ -218,7 +254,7 @@
                     android:layout_marginTop="18dp"
                     android:background="@drawable/bg_edit_text_clear"
                     android:gravity="top"
-                    android:hint="자기소개를 입력하세요"
+                    android:hint="소개를 적어주세요"
                     android:inputType="textMultiLine"
                     android:minLines="6"
                     android:maxLines="6"

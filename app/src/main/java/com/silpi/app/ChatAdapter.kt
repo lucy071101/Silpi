@@ -23,6 +23,7 @@ class ChatAdapter(
         private const val VIEW_TYPE_SYSTEM = 0
         private const val VIEW_TYPE_LEFT = 1
         private const val VIEW_TYPE_RIGHT = 2
+        private const val VIEW_TYPE_DATE = 3
     }
 
     class LeftViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -43,7 +44,15 @@ class ChatAdapter(
         val textViewSystemMessage: TextView = itemView.findViewById(R.id.textViewSystemMessage)
     }
 
+    class DateViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val textViewDateDivider: TextView = itemView.findViewById(R.id.textViewDateDivider)
+    }
+
     override fun getItemViewType(position: Int): Int {
+        if (messageList[position].messageType == "date") {
+            return VIEW_TYPE_DATE
+        }
+
         if (messageList[position].messageType == "system") {
             return VIEW_TYPE_SYSTEM
         }
@@ -57,6 +66,11 @@ class ChatAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
+            VIEW_TYPE_DATE -> {
+                val view = LayoutInflater.from(parent.context)
+                        .inflate(R.layout.item_chat_date_divider, parent, false)
+                DateViewHolder(view)
+            }
             VIEW_TYPE_SYSTEM -> {
                 val view = LayoutInflater.from(parent.context)
                         .inflate(R.layout.item_chat_system, parent, false)
@@ -80,6 +94,11 @@ class ChatAdapter(
         if (currentPosition == RecyclerView.NO_POSITION) return
 
         val chatMessage = messageList[currentPosition]
+        if (holder is DateViewHolder) {
+            holder.textViewDateDivider.text = chatMessage.message
+            return
+        }
+
         if (holder is SystemViewHolder) {
             holder.textViewSystemMessage.text = chatMessage.message
             return
@@ -89,10 +108,12 @@ class ChatAdapter(
 
         val isSameSenderAsPrevious =
                 currentPosition > 0 &&
+                        messageList[currentPosition - 1].messageType == "text" &&
                         messageList[currentPosition - 1].senderId == chatMessage.senderId
 
         val shouldShowTime =
                 currentPosition == messageList.lastIndex ||
+                        messageList[currentPosition + 1].messageType != "text" ||
                         messageList[currentPosition + 1].senderId != chatMessage.senderId
 
         if (holder is RightViewHolder) {
@@ -123,6 +144,7 @@ class ChatAdapter(
 
             val shouldShowSenderName =
                     currentPosition == 0 ||
+                            messageList[currentPosition - 1].messageType != "text" ||
                             messageList[currentPosition - 1].senderId != chatMessage.senderId
 
             if (shouldShowSenderName) {

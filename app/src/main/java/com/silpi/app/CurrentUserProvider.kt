@@ -39,12 +39,11 @@ object CurrentUserProvider {
     }
 
     fun city(context: Context): String {
-        return prefs(context).getString(KEY_CITY, null) ?: "서울시 강남구"
+        return prefs(context).getString(KEY_CITY, null) ?: ""
     }
 
     fun bio(context: Context): String {
-        return prefs(context).getString(KEY_BIO, null)
-                ?: "안녕하세요! 서울에서 IT 개발자로 일하고 있습니다. 새로운 사람들과 소통하는 것을 좋아하고, 긍정적인 에너지를 나누고 싶어요"
+        return prefs(context).getString(KEY_BIO, null) ?: ""
     }
 
     fun interests(context: Context): List<String> {

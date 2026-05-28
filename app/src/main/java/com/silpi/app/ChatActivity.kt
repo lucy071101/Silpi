@@ -36,6 +36,7 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var backButton: ImageButton
     private lateinit var addButton: ImageButton
     private lateinit var phoneButton: ImageButton
+    private lateinit var phoneButtonLayout: View
     private lateinit var moreButton: ImageButton
     private lateinit var menuPanel: FrameLayout
     private lateinit var imageProfile: ImageView
@@ -94,6 +95,7 @@ class ChatActivity : AppCompatActivity() {
         backButton = findViewById(R.id.buttonBack)
         addButton = findViewById(R.id.buttonAdd)
         phoneButton = findViewById(R.id.buttonPhone)
+        phoneButtonLayout = findViewById(R.id.layoutPhoneButton)
         moreButton = findViewById(R.id.buttonMore)
         menuPanel = findViewById(R.id.layoutChatMenuPanel)
         imageProfile = findViewById(R.id.imageProfile)
@@ -296,20 +298,15 @@ class ChatActivity : AppCompatActivity() {
                     currentChatRoom = chatRoom.copy(roomId = document.id)
 
                     if (chatRoom.group) {
-                        phoneButton.visibility = View.GONE
+                        phoneButtonLayout.visibility = View.GONE
                         bindGroupRoomHeader(chatRoom)
                         return@addOnSuccessListener
                     }
 
-                    phoneButton.visibility = View.VISIBLE
+                    phoneButtonLayout.visibility = View.VISIBLE
                     val otherUserId = chatRoom.participants.firstOrNull { it != myUserId }
                     textViewUserName.text = chatRoom.participantNames[otherUserId] ?: "채팅"
-                    imageProfile.visibility = View.VISIBLE
-                    if (otherUserId != null) {
-                        loadUserProfileImage(otherUserId) {
-                            ProfileImageHelper.setProfileImage(imageProfile, it)
-                        }
-                    }
+                    imageProfile.visibility = View.GONE
                 }
     }
 
@@ -443,7 +440,7 @@ class ChatActivity : AppCompatActivity() {
         val createdInfo = view.findViewById<TextView>(R.id.textViewMenuCreatedInfo)
         val creatorName = chatRoom.participantNames[chatRoom.createdBy].orEmpty()
         createdInfo.text = if (creatorName.isNotBlank()) {
-            "${creatorName}님이 만든 채팅방이에요."
+            "${creatorName}님이 만든 대화방이에요."
         } else {
             "채팅방 정보"
         }
@@ -451,8 +448,8 @@ class ChatActivity : AppCompatActivity() {
 
     private fun confirmExitChatRoom(chatRoom: ChatRoom) {
         AlertDialog.Builder(this)
-                .setTitle("채팅방 나가기")
-                .setMessage("이 채팅방에서 나가시겠습니까?")
+                .setTitle("대화방 나가기")
+                .setMessage("이 대화방에서 나가시겠습니까?")
                 .setNegativeButton("취소", null)
                 .setPositiveButton("나가기") { _, _ ->
                     exitChatRoom(chatRoom)
@@ -519,7 +516,7 @@ class ChatActivity : AppCompatActivity() {
                 }
                 .addOnFailureListener { e ->
                     Log.e("ChatActivity", "Chat room exit failed", e)
-                    Toast.makeText(this, "채팅방 나가기에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "대화방 나가기에 실패했습니다.", Toast.LENGTH_SHORT).show()
                 }
     }
 
@@ -606,7 +603,7 @@ class ChatActivity : AppCompatActivity() {
                         }
                     }
 
-                    messageList.addAll(loadedMessages.sortedBy { it.timestamp })
+                    messageList.addAll(buildMessagesWithDateDividers(loadedMessages.sortedBy { it.timestamp }))
 
                     chatAdapter.notifyDataSetChanged()
                     loadMessageSenderProfiles()
@@ -617,6 +614,28 @@ class ChatActivity : AppCompatActivity() {
 
                     markAsRead()
                 }
+    }
+
+    private fun buildMessagesWithDateDividers(messages: List<ChatMessage>): List<ChatMessage> {
+        val result = mutableListOf<ChatMessage>()
+        var lastDateKey = ""
+
+        for (message in messages) {
+            val dateKey = ChatTimeHelper.dateKey(message.timestamp)
+            if (dateKey.isNotBlank() && dateKey != lastDateKey) {
+                result.add(
+                        ChatMessage(
+                                message = ChatTimeHelper.formatDateDivider(message.timestamp),
+                                messageType = "date",
+                                timestamp = message.timestamp
+                        )
+                )
+                lastDateKey = dateKey
+            }
+            result.add(message)
+        }
+
+        return result
     }
 
     private fun loadMessageSenderProfiles() {

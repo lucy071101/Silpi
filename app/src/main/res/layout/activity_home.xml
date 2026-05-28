@@ -59,7 +59,7 @@
             android:id="@+id/chatButton"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="채팅 페이지"
+            android:text="대화방"
             android:layout_marginBottom="16dp" />
 
         <Button

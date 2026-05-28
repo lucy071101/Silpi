@@ -26,6 +26,8 @@ class ProfileActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_FIRST_SETUP = "extra_first_setup"
         const val EXTRA_PROFILE_LOAD_FAILED = "extra_profile_load_failed"
+        private const val NAME_MAX_LENGTH = 8
+        private const val CITY_MAX_LENGTH = 12
         private const val BIO_MAX_LENGTH = 90
         private const val BIO_MAX_LINES = 6
     }
@@ -41,6 +43,9 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var textViewEditHint: TextView
     private lateinit var textViewInterests: TextView
     private lateinit var buttonSelectInterests: TextView
+    private lateinit var layoutProfilePhotoButtons: View
+    private lateinit var buttonChangePhoto: TextView
+    private lateinit var buttonDefaultPhoto: TextView
     private lateinit var layoutInterestsEdit: View
     private lateinit var layoutProfileLoadError: View
     private lateinit var textViewProfileLoadError: TextView
@@ -53,7 +58,8 @@ class ProfileActivity : AppCompatActivity() {
     private var profileLoadFailed: Boolean = false
     private var isAdjustingBioText: Boolean = false
 
-    private val interestOptions = listOf("게임", "독서", "음악 감상", "카페 탐방", "러닝", "영화", "맛집", "여행", "운동", "공부")
+    private val interestOptions = listOf("게임", "독서", "음악 감상", "카페 탐방", "영화", "맛집", "여행", "운동", "공부", "장기", "바둑", "낚시", "등산")
+    private val defaultInterests = listOf("운동", "독서", "바둑", "장기", "등산", "낚시")
     private val selectedInterests = mutableListOf<String>()
 
     private val imagePickerLauncher = registerForActivityResult(
@@ -88,6 +94,8 @@ class ProfileActivity : AppCompatActivity() {
         editTextName = findViewById(R.id.editTextName)
         editTextCity = findViewById(R.id.editTextCity)
         editTextBio = findViewById(R.id.editTextBio)
+        editTextName.filters = arrayOf(InputFilter.LengthFilter(NAME_MAX_LENGTH))
+        editTextCity.filters = arrayOf(InputFilter.LengthFilter(CITY_MAX_LENGTH))
         textViewBioLimit = findViewById(R.id.textViewBioLimit)
         editTextBio.filters = arrayOf(InputFilter.LengthFilter(BIO_MAX_LENGTH))
         editTextBio.addTextChangedListener(object : TextWatcher {
@@ -105,6 +113,9 @@ class ProfileActivity : AppCompatActivity() {
         textViewEditHint = findViewById(R.id.textViewEditHint)
         textViewInterests = findViewById(R.id.textViewInterests)
         buttonSelectInterests = findViewById(R.id.buttonSelectInterests)
+        layoutProfilePhotoButtons = findViewById(R.id.layoutProfilePhotoButtons)
+        buttonChangePhoto = findViewById(R.id.buttonChangePhoto)
+        buttonDefaultPhoto = findViewById(R.id.buttonDefaultPhoto)
         layoutInterestsEdit = findViewById(R.id.layoutInterestsEdit)
         layoutProfileLoadError = findViewById(R.id.layoutProfileLoadError)
         textViewProfileLoadError = findViewById(R.id.textViewProfileLoadError)
@@ -124,7 +135,8 @@ class ProfileActivity : AppCompatActivity() {
 
         selectedInterests.clear()
         if (!isFirstSetup) {
-            selectedInterests.addAll(CurrentUserProvider.interests(this))
+            val savedInterests = CurrentUserProvider.interests(this).filter { it in interestOptions }
+            selectedInterests.addAll(savedInterests.ifEmpty { defaultInterests })
         }
         updateInterestText()
 
@@ -153,6 +165,19 @@ class ProfileActivity : AppCompatActivity() {
         imageProfile.setOnClickListener {
             if (isEditing && !profileLoadFailed) {
                 imagePickerLauncher.launch("image/*")
+            }
+        }
+
+        buttonChangePhoto.setOnClickListener {
+            if (isEditing && !profileLoadFailed) {
+                imagePickerLauncher.launch("image/*")
+            }
+        }
+
+        buttonDefaultPhoto.setOnClickListener {
+            if (isEditing && !profileLoadFailed) {
+                profileImageData = ""
+                ProfileImageHelper.setProfileImage(imageProfile, profileImageData)
             }
         }
 
@@ -207,6 +232,7 @@ class ProfileActivity : AppCompatActivity() {
         buttonSave.setBackgroundResource(R.drawable.bg_profile_save_button)
 
         imageProfile.isEnabled = isEditing
+        layoutProfilePhotoButtons.visibility = if (isEditing) View.VISIBLE else View.GONE
         textViewEditHint.visibility = if (isEditing) View.VISIBLE else View.GONE
         textViewInterests.isEnabled = isEditing
         textViewInterests.alpha = if (isEditing) 1.0f else 0.92f
@@ -364,7 +390,7 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         val userName = enteredUserName
-        val city = editTextCity.text.toString().trim().ifBlank { "서울시 강남구" }
+        val city = editTextCity.text.toString().trim()
         val bio = editTextBio.text.toString().trim()
 
         CurrentUserProvider.saveProfile(

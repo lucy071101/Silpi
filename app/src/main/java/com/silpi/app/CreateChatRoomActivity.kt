@@ -3,6 +3,7 @@ package com.silpi.app
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputFilter
 import android.text.TextWatcher
 import android.view.inputmethod.InputMethodManager
 import android.content.Context
@@ -18,6 +19,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FirebaseFirestore
 
 class CreateChatRoomActivity : AppCompatActivity() {
+    private companion object {
+        const val ROOM_NAME_MAX_LENGTH = 20
+    }
 
     private lateinit var editTextUserSearch: EditText
     private lateinit var btnCreateRoom: Button
@@ -169,7 +173,7 @@ class CreateChatRoomActivity : AppCompatActivity() {
                 if (selectedUserList.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
         updateSelectedCountLabel()
 
-        btnCreateRoom.text = "채팅방 만들기"
+        btnCreateRoom.text = "대화방 만들기"
     }
 
     private fun updateSelectedCountLabel() {
@@ -184,6 +188,7 @@ class CreateChatRoomActivity : AppCompatActivity() {
         val roomNameInput = EditText(this)
         roomNameInput.hint = "방 이름 입력"
         roomNameInput.setSingleLine(true)
+        roomNameInput.filters = arrayOf(InputFilter.LengthFilter(ROOM_NAME_MAX_LENGTH))
         roomNameInput.setPadding(32, 24, 32, 24)
 
         val dialog = AlertDialog.Builder(this)

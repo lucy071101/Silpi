@@ -239,8 +239,8 @@ class ChatListActivity : AppCompatActivity() {
         }
 
         AlertDialog.Builder(this)
-                .setTitle("채팅방 나가기")
-                .setMessage("'$roomName' 채팅방에서 나가시겠습니까?")
+                .setTitle("대화방 나가기")
+                .setMessage("'$roomName' 대화방에서 나가시겠습니까?")
                 .setPositiveButton("나가기") { _, _ ->
                     exitChatRoom(chatRoom)
                 }
@@ -303,7 +303,7 @@ class ChatListActivity : AppCompatActivity() {
             }
         }
                 .addOnSuccessListener {
-                    Toast.makeText(this, "채팅방에서 나갔습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "대화방에서 나갔습니다.", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener { e ->
                     Log.e("ChatListActivity", "Chat room exit failed", e)

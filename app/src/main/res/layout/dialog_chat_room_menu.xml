@@ -241,7 +241,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="54dp"
                 android:gravity="center_vertical"
-                android:text="채팅방 나가기"
+                android:text="대화방 나가기"
                 android:textColor="#E85D3F"
                 android:textSize="16sp"
                 android:textStyle="bold" />
