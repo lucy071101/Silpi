@@ -75,7 +75,7 @@ class ChatActivity : AppCompatActivity() {
         chatRoomId = intent.getStringExtra("chatRoomId") ?: ""
 
         if (chatRoomId.isEmpty()) {
-            Toast.makeText(this, "Chat room ID is missing.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "대화방 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
@@ -231,7 +231,7 @@ class ChatActivity : AppCompatActivity() {
                 timestamp = System.currentTimeMillis()
         )
 
-        sendChatMessage(chatMessage, "Photo")
+        sendChatMessage(chatMessage, "사진")
     }
 
     private fun sendChatMessage(chatMessage: ChatMessage, lastMessage: String) {
@@ -263,7 +263,7 @@ class ChatActivity : AppCompatActivity() {
                 }
                 .addOnFailureListener { e ->
                     Log.e("ChatActivity", "Message send failed", e)
-                    Toast.makeText(this, "Message send failed", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "문자 전송에 실패했습니다.", Toast.LENGTH_SHORT).show()
                 }
     }
 
@@ -311,7 +311,7 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun bindGroupRoomHeader(chatRoom: ChatRoom) {
-        val roomName = chatRoom.roomName.ifBlank { "그룹 채팅방" }
+        val roomName = chatRoom.roomName.ifBlank { "그룹 대화방" }
         val memberCountText = chatRoom.participants.size.toString()
         val title = "$roomName $memberCountText"
         val memberCountStart = title.length - memberCountText.length
@@ -331,7 +331,7 @@ class ChatActivity : AppCompatActivity() {
     private fun showChatRoomMenu() {
         val chatRoom = currentChatRoom
         if (chatRoom == null) {
-            Toast.makeText(this, "채팅방 정보를 불러오는 중입니다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "대화방 정보를 불러오는 중입니다.", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -374,13 +374,13 @@ class ChatActivity : AppCompatActivity() {
             layoutProfileCluster.visibility = View.VISIBLE
             imageSingleProfile.visibility = View.GONE
             bindGroupProfileCluster(view, participants.take(4))
-            textViewRoomName.text = chatRoom.roomName.ifBlank { "그룹 채팅방" }
+            textViewRoomName.text = chatRoom.roomName.ifBlank { "그룹 대화방" }
         } else {
             val otherParticipant = participants.firstOrNull { !it.isMe } ?: participants.firstOrNull()
             layoutProfileCluster.visibility = View.GONE
             imageSingleProfile.visibility = View.VISIBLE
             ProfileImageHelper.setProfileImage(imageSingleProfile, otherParticipant?.profileImageData.orEmpty())
-            textViewRoomName.text = otherParticipant?.userName ?: "채팅방"
+            textViewRoomName.text = otherParticipant?.userName ?: "대화방"
         }
     }
 
@@ -442,7 +442,7 @@ class ChatActivity : AppCompatActivity() {
         createdInfo.text = if (creatorName.isNotBlank()) {
             "${creatorName}님이 만든 대화방이에요."
         } else {
-            "채팅방 정보"
+            "대화방 정보"
         }
     }
 
@@ -521,10 +521,23 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun showImagePreview(imageData: String) {
-        val imageBytes = Base64.decode(imageData, Base64.DEFAULT)
-        val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+        val bitmap = decodeImageData(imageData)
+        if (bitmap == null) {
+            Toast.makeText(this, "이미지를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         imagePreview.setImageBitmap(bitmap)
         imagePreviewOverlay.visibility = View.VISIBLE
+    }
+
+    private fun decodeImageData(imageData: String): Bitmap? {
+        return try {
+            val imageBytes = Base64.decode(imageData, Base64.DEFAULT)
+            BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+        } catch (e: IllegalArgumentException) {
+            null
+        }
     }
 
     private fun closeImagePreview() {
@@ -647,6 +660,8 @@ class ChatActivity : AppCompatActivity() {
                 .distinct()
 
         for (senderId in senderIds) {
+            if (profileImagesByUserId.containsKey(senderId)) continue
+
             loadUserProfileImage(senderId) { profileImageData ->
                 profileImagesByUserId[senderId] = profileImageData
                 chatAdapter.notifyDataSetChanged()

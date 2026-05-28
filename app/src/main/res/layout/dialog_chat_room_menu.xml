@@ -166,7 +166,7 @@
             android:layout_marginTop="14dp"
             android:layout_marginEnd="24dp"
             android:gravity="center"
-            android:text="채팅방"
+            android:text="대화방"
             android:textColor="#111111"
             android:textSize="22sp"
             android:textStyle="bold" />

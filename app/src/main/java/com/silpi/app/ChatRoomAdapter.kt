@@ -77,13 +77,13 @@ class ChatRoomAdapter(
 
     private fun getDisplayRoomName(chatRoom: ChatRoom): String {
         return if (chatRoom.group) {
-            chatRoom.roomName.ifBlank { "그룹 채팅방" }
+            chatRoom.roomName.ifBlank { "그룹 대화방" }
         } else {
             val otherUserId = chatRoom.participants.firstOrNull { it != myUserId }
             if (otherUserId != null) {
-                chatRoom.participantNames[otherUserId] ?: chatRoom.roomName.ifBlank { "이름 없는 채팅방" }
+                chatRoom.participantNames[otherUserId] ?: chatRoom.roomName.ifBlank { "이름 없는 대화방" }
             } else {
-                chatRoom.roomName.ifBlank { "이름 없는 채팅방" }
+                chatRoom.roomName.ifBlank { "이름 없는 대화방" }
             }
         }
     }

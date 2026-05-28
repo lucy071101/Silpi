@@ -76,7 +76,7 @@
         android:layout_toEndOf="@id/imageViewProfile"
         android:ellipsize="end"
         android:maxLines="1"
-        android:text="채팅방"
+        android:text="대화방"
         android:textColor="#162033"
         android:textSize="24sp"
         android:textStyle="bold" />

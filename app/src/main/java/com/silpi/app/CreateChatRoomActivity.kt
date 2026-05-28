@@ -274,7 +274,7 @@ class CreateChatRoomActivity : AppCompatActivity() {
 
         roomRef.set(chatRoom)
                 .addOnSuccessListener {
-                    Toast.makeText(this, "채팅방 생성 완료", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "대화방 생성 완료", Toast.LENGTH_SHORT).show()
 
                     val intent = Intent(this, ChatActivity::class.java)
                     intent.putExtra("chatRoomId", roomId)
@@ -282,7 +282,7 @@ class CreateChatRoomActivity : AppCompatActivity() {
                     finish()
                 }
                 .addOnFailureListener {
-                    Toast.makeText(this, "생성 실패", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "대화방 생성에 실패했습니다.", Toast.LENGTH_SHORT).show()
                 }
     }
 
@@ -311,7 +311,7 @@ class CreateChatRoomActivity : AppCompatActivity() {
                     }
                 }
                 .addOnFailureListener {
-                    Toast.makeText(this, "기존 채팅방 확인에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "기존 대화방 확인에 실패했습니다.", Toast.LENGTH_SHORT).show()
                 }
     }
 
@@ -353,7 +353,7 @@ class CreateChatRoomActivity : AppCompatActivity() {
             roomId
         }
                 .addOnSuccessListener { createdOrExistingRoomId ->
-                    Toast.makeText(this, "채팅방 생성 완료", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "대화방 생성 완료", Toast.LENGTH_SHORT).show()
 
                     val intent = Intent(this, ChatActivity::class.java)
                     intent.putExtra("chatRoomId", createdOrExistingRoomId)
@@ -361,7 +361,7 @@ class CreateChatRoomActivity : AppCompatActivity() {
                     finish()
                 }
                 .addOnFailureListener {
-                    Toast.makeText(this, "생성 실패", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "대화방 생성에 실패했습니다.", Toast.LENGTH_SHORT).show()
                 }
     }
 
