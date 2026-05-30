@@ -166,9 +166,16 @@ public class PostDetailActivity extends AppCompatActivity {
                             btnMoreOptions.setVisibility(View.VISIBLE);
                             btnMoreOptions.setOnClickListener(v -> {
                                 PopupMenu popup = new PopupMenu(PostDetailActivity.this, btnMoreOptions);
+                                popup.getMenu().add("수정");
                                 popup.getMenu().add("삭제");
                                 popup.setOnMenuItemClickListener(item -> {
-                                    if (item.getTitle().equals("삭제")) {
+                                    if (item.getTitle().equals("수정")) {
+                                        Intent intent = new Intent(PostDetailActivity.this, PostWriteActivity.class);
+                                        intent.putExtra("postId", postId);
+                                        intent.putExtra("title", tvTitle.getText().toString());
+                                        intent.putExtra("content", tvContent.getText().toString());
+                                        startActivity(intent);
+                                    } else if (item.getTitle().equals("삭제")) {
                                         new AlertDialog.Builder(PostDetailActivity.this)
                                                 .setTitle("게시글 삭제")
                                                 .setMessage("정말로 이 게시글을 삭제하시겠습니까?")
@@ -222,8 +229,6 @@ public class PostDetailActivity extends AppCompatActivity {
                     db.collection("posts").document(postId).update("commentCount", FieldValue.increment(1));
                     etComment.setText("");
                     Toast.makeText(this, "댓글이 등록되었습니다.", Toast.LENGTH_SHORT).show();
-
-                    finish();
                 });
     }
 

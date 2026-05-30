@@ -4,9 +4,12 @@ import android.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
@@ -90,9 +93,42 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
             holder.btnMore.setVisibility(View.VISIBLE);
             holder.btnMore.setOnClickListener(v -> {
                 PopupMenu popup = new PopupMenu(holder.itemView.getContext(), holder.btnMore);
+                popup.getMenu().add("수정");
                 popup.getMenu().add("삭제");
+
                 popup.setOnMenuItemClickListener(item -> {
-                    if (item.getTitle().equals("삭제")) {
+                    if (item.getTitle().equals("수정")) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(holder.itemView.getContext());
+                        builder.setTitle("댓글 수정");
+
+                        final EditText input = new EditText(holder.itemView.getContext());
+                        input.setText(content);
+                        input.setSelection(input.getText().length());
+
+                        FrameLayout container = new FrameLayout(holder.itemView.getContext());
+                        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                        int margin = (int) (20 * holder.itemView.getResources().getDisplayMetrics().density);
+                        params.setMargins(margin, margin, margin, margin);
+                        input.setLayoutParams(params);
+                        container.addView(input);
+                        builder.setView(container);
+
+                        builder.setPositiveButton("수정", (dialog, which) -> {
+                            String newText = input.getText().toString().trim();
+                            if (!newText.isEmpty()) {
+                                doc.getReference().update("content", newText)
+                                        .addOnSuccessListener(aVoid -> {
+                                            Toast.makeText(holder.itemView.getContext(), "댓글이 수정되었습니다.", Toast.LENGTH_SHORT).show();
+                                        });
+                            } else {
+                                Toast.makeText(holder.itemView.getContext(), "내용을 입력해주세요.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+                        builder.setNegativeButton("취소", (dialog, which) -> dialog.cancel());
+                        builder.show();
+
+                    } else if (item.getTitle().equals("삭제")) {
                         new AlertDialog.Builder(holder.itemView.getContext())
                                 .setTitle("댓글 삭제")
                                 .setMessage("정말로 이 댓글을 삭제하시겠습니까?")
