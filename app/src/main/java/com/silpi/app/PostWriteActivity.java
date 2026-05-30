@@ -42,6 +42,8 @@ public class PostWriteActivity extends AppCompatActivity {
     private Uri selectedImageUri;
     private String category = "일반";
 
+    private String editingPostId = null;
+
     private final ActivityResultLauncher<Intent> pickImageLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -65,6 +67,13 @@ public class PostWriteActivity extends AppCompatActivity {
         initViews();
         setClickListeners();
         addInputWatcher();
+
+        if (getIntent().hasExtra("postId")) {
+            editingPostId = getIntent().getStringExtra("postId");
+            etTitle.setText(getIntent().getStringExtra("title"));
+            etContent.setText(getIntent().getStringExtra("content"));
+            btnComplete.setText("수정 완료");
+        }
     }
 
     private void initViews() {
@@ -106,6 +115,7 @@ public class PostWriteActivity extends AppCompatActivity {
                 Toast.makeText(this, "사진을 처리하는 데 실패했습니다.", Toast.LENGTH_SHORT).show();
             }
         } else {
+
             saveToFirestore(title, content, null, isAnonymous);
         }
     }
@@ -128,12 +138,19 @@ public class PostWriteActivity extends AppCompatActivity {
         Map<String, Object> post = new HashMap<>();
         post.put("title", title);
         post.put("content", content);
-        post.put("imageUrl", imageUrl);
+
+        if (imageUrl != null) {
+            post.put("imageUrl", imageUrl);
+        }
+
         post.put("isAnonymous", isAnonymous);
         post.put("category", category);
-        post.put("recommendCount", 0);
-        post.put("commentCount", 0);
         post.put("timestamp", FieldValue.serverTimestamp());
+
+        if (editingPostId == null) {
+            post.put("recommendCount", 0);
+            post.put("commentCount", 0);
+        }
 
         String myUserId = CurrentUserProvider.INSTANCE.userId(this);
         post.put("authorId", myUserId);
@@ -153,7 +170,20 @@ public class PostWriteActivity extends AppCompatActivity {
             post.put("authorProfile", (myProfile != null) ? myProfile : "");
         }
 
-        uploadToDb(post);
+        if (editingPostId != null) {
+
+            db.collection("posts").document(editingPostId).update(post)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "글이 수정되었습니다!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        btnComplete.setEnabled(true);
+                        Toast.makeText(this, "수정 실패: " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            uploadToDb(post);
+        }
     }
 
     private void uploadToDb(Map<String, Object> post) {

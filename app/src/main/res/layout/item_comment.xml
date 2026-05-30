@@ -26,8 +26,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                android:src="@android:drawable/ic_menu_report_image" />
-        </androidx.cardview.widget.CardView>
+                android:src="@android:drawable/ic_menu_report_image"
+                android:contentDescription="댓글 작성자 프로필 사진" /> </androidx.cardview.widget.CardView>
 
         <TextView
             android:id="@+id/tv_item_comment_author"
@@ -42,13 +42,15 @@
 
         <ImageView
             android:id="@+id/btn_more_options"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:padding="8dp"
+            android:layout_width="57dp"
+            android:layout_height="57dp"
+            android:src="@drawable/ic_more_vert"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_more"
-            android:visibility="gone" />
-    </LinearLayout>
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:tint="#888888"
+            android:contentDescription="더보기 메뉴" /> </LinearLayout>
 
     <TextView
         android:id="@+id/tv_item_comment_content"

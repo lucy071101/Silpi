@@ -41,9 +41,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="즐겨찾는 커뮤니티"
-        android:textColor="#333333"
+        android:textColor="#000000"
         android:textSize="26sp"
         android:textStyle="bold"
+        android:fontFamily="sans-serif-black"
         android:layout_marginTop="24dp" />
 
     <ScrollView
