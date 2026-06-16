@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.text.InputFilter;
 import android.view.View;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -16,9 +17,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import android.webkit.WebChromeClient;
-
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -72,13 +73,8 @@ public class MeetingCreateActivity extends AppCompatActivity {
                     for (int i = start; i < end; i++) {
                         char c = source.charAt(i);
 
-                        if (!Character.isDigit(c) && c != '.') {
-                            return "";
-                        }
-
-                        if (c == '.' && dest.toString().contains(".")) {
-                            return "";
-                        }
+                        if (!Character.isDigit(c) && c != '.') return "";
+                        if (c == '.' && dest.toString().contains(".")) return "";
                     }
                     return null;
                 }
@@ -89,7 +85,6 @@ public class MeetingCreateActivity extends AppCompatActivity {
                 Toast.makeText(this, "최소 2명부터 설정 가능합니다.", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             peopleCount--;
             edtPeople.setText(String.valueOf(peopleCount));
         });
@@ -184,6 +179,11 @@ public class MeetingCreateActivity extends AppCompatActivity {
                         .setPositiveButton("네", (dialog, which) -> {
                             String title = category + " 모임 - " + place;
 
+                            String creatorUid = "";
+                            if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                                creatorUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                            }
+
                             String newMeeting =
                                     title + "§" +
                                             category + "§" +
@@ -195,10 +195,11 @@ public class MeetingCreateActivity extends AppCompatActivity {
                                             guardian + "§" +
                                             desc + "§" +
                                             "0" + "§" +
-                                            "false" + "§" +
+                                            "" + "§" +
                                             "true" + "§" +
                                             placeLat + "§" +
-                                            placeLng;
+                                            placeLng + "§" +
+                                            creatorUid;
 
                             String oldMeetings = getSharedPreferences("meeting_data", MODE_PRIVATE)
                                     .getString("meetings", "");
@@ -278,28 +279,22 @@ public class MeetingCreateActivity extends AppCompatActivity {
 
     private String makePlaceSearchHtml() {
         return "<!DOCTYPE html>" +
-                "<html>" +
-                "<head>" +
+                "<html><head>" +
                 "<meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
                 "<script src='https://dapi.kakao.com/v2/maps/sdk.js?appkey=" + KAKAO_JS_KEY + "&libraries=services&autoload=false'></script>" +
-                "</head>" +
-                "<body>" +
-                "<script>" +
+                "</head><body><script>" +
                 "var ps = null;" +
                 "var ready = false;" +
-
                 "kakao.maps.load(function() {" +
                 "ps = new kakao.maps.services.Places();" +
                 "ready = true;" +
                 "Android.onSearchReady();" +
                 "});" +
-
                 "function searchPlace(keyword) {" +
                 "if (!ready || ps == null) {" +
                 "setTimeout(function(){ searchPlace(keyword); }, 500);" +
                 "return;" +
                 "}" +
-
                 "ps.keywordSearch(keyword, function(data, status) {" +
                 "if (status === kakao.maps.services.Status.OK && data.length > 0) {" +
                 "Android.onPlaceFound(keyword, data[0].y, data[0].x, data[0].place_name);" +
@@ -308,9 +303,7 @@ public class MeetingCreateActivity extends AppCompatActivity {
                 "}" +
                 "});" +
                 "}" +
-                "</script>" +
-                "</body>" +
-                "</html>";
+                "</script></body></html>";
     }
 
     private String escapeJs(String text) {

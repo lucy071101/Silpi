@@ -9,8 +9,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.auth.FirebaseAuth;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class MeetingJoinActivity extends AppCompatActivity {
 
@@ -87,21 +94,6 @@ public class MeetingJoinActivity extends AppCompatActivity {
 
             Intent intent = new Intent(MeetingJoinActivity.this, MeetingDetailActivity.class);
             intent.putExtra("index", getOriginalIndex(info));
-            intent.putExtra("title", info[0]);
-            intent.putExtra("category", info[1]);
-            intent.putExtra("people", info[2]);
-            intent.putExtra("place", info[3]);
-            intent.putExtra("distance", info[4]);
-            intent.putExtra("date", info[5]);
-            intent.putExtra("time", info[6]);
-            intent.putExtra("guardian", info[7]);
-            intent.putExtra("desc", info[8]);
-            intent.putExtra("current", getValue(info, 9, "0"));
-            intent.putExtra("joined", getValue(info, 10, "false"));
-            intent.putExtra("owner", getValue(info, 11, "true"));
-            intent.putExtra("placeLat", getValue(info, 12, ""));
-            intent.putExtra("placeLng", getValue(info, 13, ""));
-
             startActivity(intent);
         });
     }
@@ -136,11 +128,12 @@ public class MeetingJoinActivity extends AppCompatActivity {
 
         String keyword = edtSearch.getText().toString().trim();
         String selectedCategory = spinnerFilter.getSelectedItem().toString();
+        String currentUid = getCurrentUid();
 
         for (String[] info : allMeetings) {
             String title = info[0];
             String category = info[1];
-            boolean joined = Boolean.parseBoolean(getValue(info, 10, "false"));
+            boolean joined = containsUid(getValue(info, 10, ""), currentUid);
 
             if (selectedCategory.equals("참여중") && !joined) continue;
 
@@ -158,12 +151,12 @@ public class MeetingJoinActivity extends AppCompatActivity {
     }
 
     String[] normalize(String[] arr) {
-        String[] result = new String[14];
+        String[] result = new String[15];
 
         for (int i = 0; i < result.length; i++) {
             if (i < arr.length) result[i] = arr[i];
             else if (i == 9) result[i] = "0";
-            else if (i == 10) result[i] = "false";
+            else if (i == 10) result[i] = "";
             else if (i == 11) result[i] = "true";
             else result[i] = "";
         }
@@ -181,6 +174,46 @@ public class MeetingJoinActivity extends AppCompatActivity {
             if (allMeetings.get(i) == target) return i;
         }
         return -1;
+    }
+
+    String getCurrentUid() {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) return "";
+        return FirebaseAuth.getInstance().getCurrentUser().getUid();
+    }
+
+    boolean containsUid(String joinedUserIds, String uid) {
+        if (uid == null || uid.length() == 0) return false;
+        if (joinedUserIds == null || joinedUserIds.length() == 0) return false;
+        if (joinedUserIds.equals("true") || joinedUserIds.equals("false")) return false;
+
+        String[] arr = joinedUserIds.split(",");
+
+        for (String id : arr) {
+            if (id.equals(uid)) return true;
+        }
+
+        return false;
+    }
+
+    int countJoinedUsers(String joinedUserIds) {
+        if (joinedUserIds == null || joinedUserIds.length() == 0) return 0;
+        if (joinedUserIds.equals("true") || joinedUserIds.equals("false")) return 0;
+
+        return joinedUserIds.split(",").length;
+    }
+
+    boolean isClosedByDateTime(String date, String time) {
+        try {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.KOREA);
+            format.setLenient(false);
+
+            Date meetingDateTime = format.parse(date + " " + time);
+            Date now = new Date();
+
+            return meetingDateTime != null && !meetingDateTime.after(now);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     int parseIntSafe(String value) {
@@ -220,8 +253,10 @@ public class MeetingJoinActivity extends AppCompatActivity {
             String time = info[6];
 
             int maxPeople = parseIntSafe(info[2]);
-            int currentPeople = parseIntSafe(getValue(info, 9, "0"));
-            boolean joined = Boolean.parseBoolean(getValue(info, 10, "false"));
+            String joinedUserIds = getValue(info, 10, "");
+            int currentPeople = countJoinedUsers(joinedUserIds);
+            boolean joined = containsUid(joinedUserIds, getCurrentUid());
+            boolean closedByTime = isClosedByDateTime(date, time);
 
             String month = "";
             String day = "";
@@ -238,7 +273,10 @@ public class MeetingJoinActivity extends AppCompatActivity {
             txtTime.setText("시간: " + time);
             txtPeople.setText("인원: " + currentPeople + "/" + maxPeople + "명");
 
-            if (currentPeople >= maxPeople) {
+            if (closedByTime) {
+                txtBadge.setText("마감");
+                txtBadge.setBackgroundColor(Color.parseColor("#9E9E9E"));
+            } else if (currentPeople >= maxPeople) {
                 txtBadge.setText("마감");
                 txtBadge.setBackgroundColor(Color.parseColor("#9E9E9E"));
             } else if (joined) {
