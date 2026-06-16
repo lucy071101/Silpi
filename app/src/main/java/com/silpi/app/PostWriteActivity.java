@@ -135,44 +135,17 @@ public class PostWriteActivity extends AppCompatActivity {
     }
 
     private void saveToFirestore(String title, String content, String imageUrl, boolean isAnonymous) {
-        Map<String, Object> post = new HashMap<>();
-        post.put("title", title);
-        post.put("content", content);
+        if (editingPostId != null) {
+            Map<String, Object> updateData = new HashMap<>();
+            updateData.put("title", title);
+            updateData.put("content", content);
+            updateData.put("isAnonymous", isAnonymous);
 
-        if (imageUrl != null) {
-            post.put("imageUrl", imageUrl);
-        }
-
-        post.put("isAnonymous", isAnonymous);
-        post.put("category", category);
-        post.put("timestamp", FieldValue.serverTimestamp());
-
-        if (editingPostId == null) {
-            post.put("recommendCount", 0);
-            post.put("commentCount", 0);
-        }
-
-        String myUserId = CurrentUserProvider.INSTANCE.userId(this);
-        post.put("authorId", myUserId);
-
-        if (isAnonymous) {
-            post.put("authorName", "익명");
-            post.put("authorProfile", "");
-        } else {
-            String myName = CurrentUserProvider.INSTANCE.userName(this);
-            String myProfile = CurrentUserProvider.INSTANCE.profileImageData(this);
-
-            if (myName == null || myName.trim().isEmpty()) {
-                myName = "동네주민";
+            if (imageUrl != null) {
+                updateData.put("imageUrl", imageUrl);
             }
 
-            post.put("authorName", myName);
-            post.put("authorProfile", (myProfile != null) ? myProfile : "");
-        }
-
-        if (editingPostId != null) {
-
-            db.collection("posts").document(editingPostId).update(post)
+            db.collection("posts").document(editingPostId).update(updateData)
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(this, "글이 수정되었습니다!", Toast.LENGTH_SHORT).show();
                         finish();
@@ -182,6 +155,38 @@ public class PostWriteActivity extends AppCompatActivity {
                         Toast.makeText(this, "수정 실패: " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
                     });
         } else {
+            Map<String, Object> post = new HashMap<>();
+            post.put("title", title);
+            post.put("content", content);
+
+            if (imageUrl != null) {
+                post.put("imageUrl", imageUrl);
+            }
+
+            post.put("isAnonymous", isAnonymous);
+            post.put("category", category);
+            post.put("timestamp", FieldValue.serverTimestamp());
+            post.put("recommendCount", 0);
+            post.put("commentCount", 0);
+
+            String myUserId = CurrentUserProvider.INSTANCE.userId(this);
+            post.put("authorId", myUserId);
+
+            if (isAnonymous) {
+                post.put("authorName", "익명");
+                post.put("authorProfile", "");
+            } else {
+                String myName = CurrentUserProvider.INSTANCE.userName(this);
+                String myProfile = CurrentUserProvider.INSTANCE.profileImageData(this);
+
+                if (myName == null || myName.trim().isEmpty()) {
+                    myName = "동네주민";
+                }
+
+                post.put("authorName", myName);
+                post.put("authorProfile", (myProfile != null) ? myProfile : "");
+            }
+
             uploadToDb(post);
         }
     }
