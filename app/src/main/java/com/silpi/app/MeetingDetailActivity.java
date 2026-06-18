@@ -1,13 +1,19 @@
 package com.silpi.app;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuth;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class MeetingDetailActivity extends AppCompatActivity {
 
@@ -66,9 +72,13 @@ public class MeetingDetailActivity extends AppCompatActivity {
         String guardian = info[7];
         String desc = info[8];
 
-        int currentPeople = parseIntSafe(getValue(info, 9, "0"));
-        boolean joined = Boolean.parseBoolean(getValue(info, 10, "false"));
-        boolean owner = Boolean.parseBoolean(getValue(info, 11, "true"));
+        String currentUid = getCurrentUid();
+        String joinedUserIds = getValue(info, 10, "");
+        boolean joined = containsUid(joinedUserIds, currentUid);
+        int currentPeople = countJoinedUsers(joinedUserIds);
+        setValue(9, String.valueOf(currentPeople));
+
+        boolean closedByTime = isClosedByDateTime(date, time);
 
         double limitKm = parseDoubleSafe(distance);
         double lat = parseDoubleSafe(getValue(info, 12, "0"));
@@ -89,7 +99,10 @@ public class MeetingDetailActivity extends AppCompatActivity {
                         + "설명: " + desc
         );
 
-        if (distanceKm > limitKm) {
+        if (closedByTime) {
+            join.setEnabled(false);
+            join.setText("마감");
+        } else if (distanceKm > limitKm) {
             join.setEnabled(false);
             join.setText("거리 초과");
         } else if (currentPeople >= maxPeople && !joined) {
@@ -104,7 +117,16 @@ public class MeetingDetailActivity extends AppCompatActivity {
         }
 
         cancel.setEnabled(joined);
-        delete.setEnabled(owner);
+
+        if (isCurrentUserCreator()) {
+            delete.setVisibility(View.VISIBLE);
+            delete.setEnabled(true);
+        } else {
+            delete.setVisibility(View.GONE);
+            delete.setEnabled(false);
+        }
+
+        saveMeeting();
     }
 
     void joinMeeting() {
@@ -114,8 +136,25 @@ public class MeetingDetailActivity extends AppCompatActivity {
         joinProcessing = true;
         join.setEnabled(false);
 
-        boolean alreadyJoined = Boolean.parseBoolean(getValue(info, 10, "false"));
-        if (alreadyJoined) {
+        String currentUid = getCurrentUid();
+
+        if (currentUid.length() == 0) {
+            Toast.makeText(this, "로그인 정보를 확인할 수 없습니다.", Toast.LENGTH_SHORT).show();
+            loadCurrentMeeting();
+            showInfo();
+            return;
+        }
+
+        if (isClosedByDateTime(info[5], info[6])) {
+            Toast.makeText(this, "이미 마감된 모임입니다.", Toast.LENGTH_SHORT).show();
+            loadCurrentMeeting();
+            showInfo();
+            return;
+        }
+
+        String joinedUserIds = getValue(info, 10, "");
+
+        if (containsUid(joinedUserIds, currentUid)) {
             Toast.makeText(this, "이미 참여한 모임입니다.", Toast.LENGTH_SHORT).show();
             loadCurrentMeeting();
             showInfo();
@@ -135,7 +174,7 @@ public class MeetingDetailActivity extends AppCompatActivity {
         }
 
         int maxPeople = parseIntSafe(info[2]);
-        int currentPeople = parseIntSafe(getValue(info, 9, "0"));
+        int currentPeople = countJoinedUsers(joinedUserIds);
 
         if (currentPeople >= maxPeople) {
             Toast.makeText(this, "정원이 마감되었습니다.", Toast.LENGTH_SHORT).show();
@@ -144,8 +183,10 @@ public class MeetingDetailActivity extends AppCompatActivity {
             return;
         }
 
-        setValue(9, String.valueOf(currentPeople + 1));
-        setValue(10, "true");
+        joinedUserIds = addUid(joinedUserIds, currentUid);
+
+        setValue(10, joinedUserIds);
+        setValue(9, String.valueOf(countJoinedUsers(joinedUserIds)));
 
         saveMeeting();
         Toast.makeText(this, "모임에 참여했습니다.", Toast.LENGTH_SHORT).show();
@@ -157,13 +198,18 @@ public class MeetingDetailActivity extends AppCompatActivity {
     void cancelMeeting() {
         if (info == null) return;
 
-        int currentPeople = parseIntSafe(getValue(info, 9, "0"));
+        String currentUid = getCurrentUid();
+        String joinedUserIds = getValue(info, 10, "");
 
-        if (currentPeople > 0) {
-            setValue(9, String.valueOf(currentPeople - 1));
+        if (!containsUid(joinedUserIds, currentUid)) {
+            Toast.makeText(this, "참여한 모임이 아닙니다.", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        setValue(10, "false");
+        joinedUserIds = removeUid(joinedUserIds, currentUid);
+
+        setValue(10, joinedUserIds);
+        setValue(9, String.valueOf(countJoinedUsers(joinedUserIds)));
 
         saveMeeting();
         Toast.makeText(this, "참여를 취소했습니다.", Toast.LENGTH_SHORT).show();
@@ -173,6 +219,11 @@ public class MeetingDetailActivity extends AppCompatActivity {
     }
 
     void deleteMeeting() {
+        if (!isCurrentUserCreator()) {
+            Toast.makeText(this, "모임 생성자만 삭제할 수 있습니다.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         ArrayList<String[]> meetings = getMeetings();
 
         if (index >= 0 && index < meetings.size()) {
@@ -180,6 +231,87 @@ public class MeetingDetailActivity extends AppCompatActivity {
             saveAllMeetings(meetings);
             Toast.makeText(this, "모임을 삭제했습니다.", Toast.LENGTH_SHORT).show();
             finish();
+        }
+    }
+
+    boolean isCurrentUserCreator() {
+        if (info == null) return false;
+
+        String creatorUid = getValue(info, 14, "");
+        String currentUid = getCurrentUid();
+
+        return currentUid.length() > 0 && currentUid.equals(creatorUid);
+    }
+
+    String getCurrentUid() {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) return "";
+        return FirebaseAuth.getInstance().getCurrentUser().getUid();
+    }
+
+    boolean containsUid(String joinedUserIds, String uid) {
+        if (uid == null || uid.length() == 0) return false;
+        if (joinedUserIds == null || joinedUserIds.length() == 0) return false;
+        if (joinedUserIds.equals("true") || joinedUserIds.equals("false")) return false;
+
+        String[] arr = joinedUserIds.split(",");
+
+        for (String id : arr) {
+            if (id.equals(uid)) return true;
+        }
+
+        return false;
+    }
+
+    String addUid(String joinedUserIds, String uid) {
+        if (uid == null || uid.length() == 0) return "";
+
+        if (joinedUserIds == null
+                || joinedUserIds.length() == 0
+                || joinedUserIds.equals("true")
+                || joinedUserIds.equals("false")) {
+            return uid;
+        }
+
+        if (containsUid(joinedUserIds, uid)) return joinedUserIds;
+
+        return joinedUserIds + "," + uid;
+    }
+
+    String removeUid(String joinedUserIds, String uid) {
+        if (joinedUserIds == null || joinedUserIds.length() == 0) return "";
+        if (joinedUserIds.equals("true") || joinedUserIds.equals("false")) return "";
+
+        StringBuilder sb = new StringBuilder();
+        String[] arr = joinedUserIds.split(",");
+
+        for (String id : arr) {
+            if (!id.equals(uid)) {
+                if (sb.length() > 0) sb.append(",");
+                sb.append(id);
+            }
+        }
+
+        return sb.toString();
+    }
+
+    int countJoinedUsers(String joinedUserIds) {
+        if (joinedUserIds == null || joinedUserIds.length() == 0) return 0;
+        if (joinedUserIds.equals("true") || joinedUserIds.equals("false")) return 0;
+
+        return joinedUserIds.split(",").length;
+    }
+
+    boolean isClosedByDateTime(String date, String time) {
+        try {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.KOREA);
+            format.setLenient(false);
+
+            Date meetingDateTime = format.parse(date + " " + time);
+            Date now = new Date();
+
+            return meetingDateTime != null && !meetingDateTime.after(now);
+        } catch (Exception e) {
+            return false;
         }
     }
 
@@ -207,7 +339,7 @@ public class MeetingDetailActivity extends AppCompatActivity {
     void saveMeeting() {
         ArrayList<String[]> meetings = getMeetings();
 
-        if (index >= 0 && index < meetings.size()) {
+        if (index >= 0 && index < meetings.size() && info != null) {
             meetings.set(index, info);
             saveAllMeetings(meetings);
         }
@@ -228,12 +360,12 @@ public class MeetingDetailActivity extends AppCompatActivity {
     }
 
     String[] normalize(String[] arr) {
-        String[] result = new String[14];
+        String[] result = new String[15];
 
         for (int i = 0; i < result.length; i++) {
             if (i < arr.length) result[i] = arr[i];
             else if (i == 9) result[i] = "0";
-            else if (i == 10) result[i] = "false";
+            else if (i == 10) result[i] = "";
             else if (i == 11) result[i] = "true";
             else result[i] = "";
         }

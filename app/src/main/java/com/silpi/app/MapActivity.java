@@ -11,6 +11,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 import java.util.Locale;
 
 public class MapActivity extends AppCompatActivity {
@@ -107,7 +109,12 @@ public class MapActivity extends AppCompatActivity {
                     String time = info[6];
 
                     double limitKm = parseDoubleSafe(info[4]);
-                    boolean joined = Boolean.parseBoolean(getValue(info, 10, "false"));
+
+                    boolean joined = containsUid(
+                            getValue(info, 10, ""),
+                            getCurrentUid()
+                    );
+
                     double lat = parseDoubleSafe(info[12]);
                     double lng = parseDoubleSafe(info[13]);
 
@@ -161,7 +168,12 @@ public class MapActivity extends AppCompatActivity {
 
             if (info.length >= 14) {
                 double limitKm = parseDoubleSafe(info[4]);
-                boolean joined = Boolean.parseBoolean(getValue(info, 10, "false"));
+
+                boolean joined = containsUid(
+                        getValue(info, 10, ""),
+                        getCurrentUid()
+                );
+
                 double lat = parseDoubleSafe(info[12]);
                 double lng = parseDoubleSafe(info[13]);
 
@@ -197,6 +209,28 @@ public class MapActivity extends AppCompatActivity {
         }
 
         return "모임 정보\n\n" + joinedResult + normalResult;
+    }
+
+    private String getCurrentUid() {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            return "";
+        }
+
+        return FirebaseAuth.getInstance().getCurrentUser().getUid();
+    }
+
+    private boolean containsUid(String joinedUserIds, String uid) {
+        if (uid == null || uid.length() == 0) return false;
+        if (joinedUserIds == null || joinedUserIds.length() == 0) return false;
+        if (joinedUserIds.equals("true") || joinedUserIds.equals("false")) return false;
+
+        String[] arr = joinedUserIds.split(",");
+
+        for (String id : arr) {
+            if (id.equals(uid)) return true;
+        }
+
+        return false;
     }
 
     private String makeMapHtml() {
