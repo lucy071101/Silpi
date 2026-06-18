@@ -330,6 +330,19 @@
                         android:textSize="17sp" />
 
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/buttonWithdraw"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="28dp"
+                    android:background="@drawable/bg_withdraw_button"
+                    android:gravity="center"
+                    android:text="회원 탈퇴"
+                    android:textColor="#C44A4A"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

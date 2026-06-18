@@ -43,6 +43,7 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var textViewEditHint: TextView
     private lateinit var textViewInterests: TextView
     private lateinit var buttonSelectInterests: TextView
+    private lateinit var buttonWithdraw: TextView
     private lateinit var layoutProfilePhotoButtons: View
     private lateinit var buttonChangePhoto: TextView
     private lateinit var buttonDefaultPhoto: TextView
@@ -113,6 +114,7 @@ class ProfileActivity : AppCompatActivity() {
         textViewEditHint = findViewById(R.id.textViewEditHint)
         textViewInterests = findViewById(R.id.textViewInterests)
         buttonSelectInterests = findViewById(R.id.buttonSelectInterests)
+        buttonWithdraw = findViewById(R.id.buttonWithdraw)
         layoutProfilePhotoButtons = findViewById(R.id.layoutProfilePhotoButtons)
         buttonChangePhoto = findViewById(R.id.buttonChangePhoto)
         buttonDefaultPhoto = findViewById(R.id.buttonDefaultPhoto)
@@ -237,6 +239,7 @@ class ProfileActivity : AppCompatActivity() {
         textViewInterests.isEnabled = isEditing
         textViewInterests.alpha = if (isEditing) 1.0f else 0.92f
         buttonSelectInterests.visibility = if (isEditing) View.VISIBLE else View.GONE
+        buttonWithdraw.visibility = if (isEditing && !isFirstSetup) View.VISIBLE else View.GONE
         layoutInterestsEdit.setBackgroundResource(
                 if (isEditing) R.drawable.bg_profile_soft_edit_field else R.drawable.bg_interest_chip
         )
